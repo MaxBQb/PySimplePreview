@@ -13,10 +13,10 @@ def preview():
         finalize=True).read()
 
 
-def get_layout(name="world!1"):
+def get_layout(name="world!!"):
     return [
         [sg.Text(f"Hello, {name}")],
-        [sg.Text("H1")],
+        [sg.Text("H1") for _ in range(6)],
     ]
 
 
