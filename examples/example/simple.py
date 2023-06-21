@@ -3,8 +3,10 @@ import time
 
 import PySimpleGUI as sg
 
+from src.PySimplePreview import preview
 
-def preview():
+
+def preview2():
     sg.Window(
         "Example",
         get_layout(),
@@ -13,11 +15,18 @@ def preview():
         finalize=True).read()
 
 
+@preview("defaults1", "from preview defaults!!")
+@preview
 def get_layout(name="world!!"):
     return [
         [sg.Text(f"Hello, {name}")],
         [sg.Text("H1") for _ in range(6)],
     ]
+
+
+@preview
+def preview3():
+    return get_layout("human")
 
 
 def main():
