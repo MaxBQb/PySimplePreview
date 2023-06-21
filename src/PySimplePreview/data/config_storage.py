@@ -11,7 +11,7 @@ class ConfigStorage:
         self.filename = filename
 
     @property
-    def config(self):
+    def config(self) -> Config:
         if self._config is None:
             self.load()
         return self._config

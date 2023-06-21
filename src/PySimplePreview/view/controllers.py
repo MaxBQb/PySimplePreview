@@ -8,7 +8,7 @@ from src.PySimplePreview.data.config_storage import ConfigStorage
 from src.PySimplePreview.data.previews_storage import PreviewsStorage
 from src.PySimplePreview.domain.model.preview import LayoutProvider
 from src.PySimplePreview.view.layouts import get_settings_layout, get_preview_layout_frame, get_nocontent_layout
-from src.PySimplePreview.view.models import map_config_to_view, ListItem
+from src.PySimplePreview.view.models import map_config_to_view, ListItem, shorten_preview_names
 
 
 class PreviewWindowController:
@@ -33,13 +33,18 @@ class PreviewWindowController:
         self._window = value
 
     def make_layout(self, layout: Callable[[], list[list]]):
+        config = map_config_to_view(self._config)
+        if self._previews.previews and config.preview_key:
+            names = shorten_preview_names(self._previews.previews)
+            name = names[self._previews.previews.index(self._config.last_preview_key)]
+            config.preview_key.name = name
         return [
             *get_settings_layout(
-                map_config_to_view(self._config),
+                config,
                 ListItem.wrap_map(zip(self._previews.previews,
-                                      self._previews.names))
+                                      names))
             ),
-            [get_preview_layout_frame(layout)],
+            [get_preview_layout_frame(layout, config.preview_key.value)],
         ]
 
     @property

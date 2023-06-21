@@ -2,11 +2,12 @@ import traceback
 
 import PySimpleGUI as sg
 
+from src.PySimplePreview.domain.interactor.previews_manager import PreviewsManager
 from src.PySimplePreview.domain.model.preview import LayoutProvider
 from src.PySimplePreview.view.models import ConfigViewDTO, ListItem
 
 
-def get_settings_layout(config: ConfigViewDTO, previews: tuple[ListItem]):
+def get_settings_layout(config: ConfigViewDTO, previews: tuple[ListItem, ...]):
     return [
         [sg.Text("Theme:"),
          sg.DropDown(sg.theme_list(), key="theme", enable_events=True,
@@ -19,8 +20,9 @@ def get_settings_layout(config: ConfigViewDTO, previews: tuple[ListItem]):
     ]
 
 
-def get_preview_layout_frame(content: LayoutProvider):
+def get_preview_layout_frame(content: LayoutProvider, name=""):
     try:
+        name = f"[{PreviewsManager.key_of(name)}]" if name else ""
         layout = content() or get_nocontent_layout()
     except Exception as e:
         message = str(e) + "\n".join(traceback.format_tb(e.__traceback__))
@@ -33,7 +35,7 @@ def get_preview_layout_frame(content: LayoutProvider):
                 pad=(6, 6),
             )]
         ]
-    return sg.Frame("Preview", expand_x=True, expand_y=True, layout=layout)
+    return sg.Frame("Preview" + f' for {name}' if name else '', expand_x=True, expand_y=True, layout=layout)
 
 
 def get_nocontent_layout():

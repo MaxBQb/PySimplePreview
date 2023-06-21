@@ -6,6 +6,8 @@ from src.PySimplePreview.domain.model.preview import LayoutProvider, Preview
 
 
 class PreviewsManager:
+    NAME_SEP = ':'
+
     def __init__(self):
         self._previews: dict[str, Preview] = dict()
 
@@ -46,8 +48,16 @@ class PreviewsManager:
         return self._previews.get(self.first_preview_key)
 
     @staticmethod
+    def split_name(key):
+        return key.split(PreviewsManager.NAME_SEP, 1)
+
+    @staticmethod
     def name_of(key):
-        return key.split(':', 1)[-1]
+        return PreviewsManager.split_name(key)[-1]
+
+    @staticmethod
+    def key_of(key):
+        return PreviewsManager.split_name(key)[0]
 
 
 def get_longest_module_name(path: Path):
