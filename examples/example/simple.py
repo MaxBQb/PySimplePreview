@@ -3,7 +3,8 @@ import time
 
 import PySimpleGUI as sg
 
-from src.PySimplePreview import preview
+# Relative imports currently not supported :(
+from examples.example.condition_import import preview
 
 
 def preview2():
