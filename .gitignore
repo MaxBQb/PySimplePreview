@@ -251,3 +251,4 @@ fabric.properties
 .idea/caches/build_file_checksums.ser
 
 # End of https://mrkandreev.name/snippets/gitignore-generator/#venv,Python,Windows,PyCharm+all
+/src/PySimplePreview/config.json
