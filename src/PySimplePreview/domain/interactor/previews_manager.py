@@ -14,6 +14,12 @@ class PreviewsManager:
     def get(self, key: str):
         return self._previews.get(key)
 
+    def remove_module(self, path: Path):
+        keys = [key for key, preview in self._previews.items()
+                if preview.path.samefile(path)]
+        for key in keys:
+            del self._previews[key]
+
     def add_preview(
         self,
         name: str,
