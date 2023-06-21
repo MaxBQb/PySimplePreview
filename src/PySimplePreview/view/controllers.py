@@ -41,15 +41,15 @@ class PreviewWindowController:
         return [
             *get_settings_layout(
                 config,
-                ListItem.wrap_map(zip(self._previews.previews,
-                                      names))
+                ListItem.wrap_map(zip(self._previews.previews, names))
             ),
             [get_preview_layout_frame(layout, config.preview_key.value)],
         ]
 
     @property
     def layout(self) -> LayoutProvider | None:
-        if not self._config.last_preview_key:
+        if not self._config.last_preview_key or\
+                self._config.last_preview_key not in self._previews.previews:
             self._config.last_preview_key = self._previews.first_preview_key
             self._configs_storage.save()
         new_layout = self._previews.get(self._config.last_preview_key)
