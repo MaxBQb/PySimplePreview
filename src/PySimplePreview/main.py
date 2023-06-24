@@ -25,7 +25,13 @@ def load_module(path):
     PreviewsStorage.get().previews.remove_module(Path(path))
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module
-    spec.loader.exec_module(module)
+    try:
+        spec.loader.exec_module(module)
+    except Exception as e:
+        print("Error on import", f"'{name}'", "package" if is_package else "module")
+        print(e)
+        PreviewsStorage.get().previews.remove_module(Path(path))
+        del sys.modules[spec.name]
 
 
 def main():

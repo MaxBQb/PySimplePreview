@@ -60,6 +60,7 @@ class PreviewWindowController:
 
     def make_layout(self, layout: Callable[[], list[list]]):
         config = map_config_to_view(self._config)
+        names = tuple()
         if self._previews.previews and config.preview_key:
             names = shorten_preview_names(self._previews.previews)
             name = names[self._previews.previews.index(self._config.last_preview_key)]
@@ -69,7 +70,8 @@ class PreviewWindowController:
                 config,
                 ListItem.wrap_map(zip(self._previews.previews, names))
             ),
-            [get_preview_layout_frame(layout, config.preview_key.value)],
+            [get_preview_layout_frame(layout, config.preview_key.value
+                                      if config.preview_key else "")],
         ]
 
     @property
