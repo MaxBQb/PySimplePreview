@@ -19,31 +19,48 @@ class PreviewsStorage:
         return cls._instance
 
 
-def preview(preview_name: str = None, *args, is_method=False, class_params: tuple[tuple, dict[str]] = None, **kwargs):
+T = typing.TypeVar('T')
+INSTANCE_PROVIDER: typing.TypeAlias = Callable[[typing.Type[T]], T] | Callable[[], T]
+SUPPORTED_LAYOUT_HOLDERS: typing.TypeAlias = Callable[[...], list[list]] | '_MethodPreview' | property
+
+
+def preview(
+    preview_name: str = None,
+    *args,
+    is_method=False,
+    instance_provider: INSTANCE_PROVIDER = None,
+    **kwargs,
+):
     f = None
     if preview_name is not None and not isinstance(preview_name, str):
         f = preview_name
         preview_name = None
-    is_method |= class_params is not None
-    is_method |= _MethodPreview.is_method(f)
-    if is_method:
+        is_method |= _MethodPreview.is_method(f)
+    is_method |= instance_provider is not None
+
+    if is_method and not getattr(instance_provider, '_instance_provided', False):
         return _MethodPreview(
-            f,
-            class_params=class_params,
-            on_instance_received=lambda instance, _f: preview(
-                preview_name, instance, *args, **kwargs
+            fn=f,
+            instance_provider=instance_provider,
+            on_instance_received=lambda provider, _f: preview(
+                preview_name, *args,
+                instance_provider=provider,
+                **kwargs
             )(_f)
         )
 
     def get_layout(func: Callable[[...], list[list]] | staticmethod):
-        if isinstance(func, staticmethod):
-            func = func.__func__
+        func = _MethodPreview.extract_function(func)
         module_path = Path(inspect.getfile(func))
         module_parents = get_longest_module_name(Path(module_path))
         qualname = f"{'.'.join(module_parents)}.{func.__qualname__}"
+        if instance_provider:
+            layout_provider = lambda: func(instance_provider(), *args, **kwargs)
+        else:
+            layout_provider = lambda: func(*args, **kwargs)
         PreviewsStorage.get().previews.add_preview(
             name=f"{qualname}:{preview_name}" if preview_name else qualname,
-            layout_provider= lambda: func(*args, **kwargs),
+            layout_provider=layout_provider,
             module_path=module_path
         )
         return func
@@ -53,20 +70,16 @@ def preview(preview_name: str = None, *args, is_method=False, class_params: tupl
     return get_layout
 
 
-preview.class_params = lambda *args, **kwargs: (args, kwargs)
-
-
 class _MethodPreview:
-    SUPPORTED_LAYOUT_HOLDERS: typing.TypeAlias = Callable[[...], list[list]] | '_MethodPreview' | property
-
     def __init__(
         self,
         fn: SUPPORTED_LAYOUT_HOLDERS,
-        class_params: tuple[tuple, dict[str]] = None,
-        on_instance_received: Callable[[typing.Any, Callable[[...], list[list]]], Callable[[...], list[list]]] = None,
+        instance_provider: INSTANCE_PROVIDER = None,
+        on_instance_received: Callable[
+            [typing.Any, Callable[[...], list[list]]], Callable[[...], list[list]]] = None,
     ):
         self.fn = fn
-        self.class_params = class_params
+        self.instance_provider = instance_provider
         self.on_instance_received = on_instance_received
 
     def __call__(self, fn: SUPPORTED_LAYOUT_HOLDERS):
@@ -74,8 +87,11 @@ class _MethodPreview:
         return self
 
     def _make_instance(self, class_):
-        class_args, class_kwargs = self.class_params or preview.class_params()
-        return class_(*class_args, **class_kwargs)
+        if self.instance_provider is None:
+            return class_()
+        if len(inspect.getfullargspec(self.instance_provider).args) == 0:
+            return self.instance_provider()
+        return self.instance_provider(class_)
 
     @staticmethod
     def is_method(f: SUPPORTED_LAYOUT_HOLDERS):
@@ -91,13 +107,17 @@ class _MethodPreview:
             self.fn.__set_name__(owner, name)
         except AttributeError:
             self.fn.class_name = owner.__name__
-        self.fn = self._extract_function(getattr(owner, name))
-        self.fn = self.on_instance_received(self._make_instance(owner), self.fn)
+        self.fn = self.extract_function(getattr(owner, name))
+        provider = lambda: self._make_instance(owner)
+        provider._instance_provided = True
+        self.fn = self.on_instance_received(provider, self.fn)
 
     @staticmethod
-    def _extract_function(value: SUPPORTED_LAYOUT_HOLDERS):
+    def extract_function(value: SUPPORTED_LAYOUT_HOLDERS):
         if value is None:
             return
         if isinstance(value, property):
             return value.fget
+        if isinstance(value, staticmethod):
+            return value.__func__
         return value

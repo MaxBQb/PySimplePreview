@@ -16,5 +16,3 @@ except ImportError:  # Used when no dependency found
             return args[0]
 
         return dummy_wrapper
-
-    preview.class_params = lambda *args, **kwargs: None

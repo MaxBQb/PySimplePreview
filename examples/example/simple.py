@@ -15,20 +15,25 @@ def preview2():
         finalize=True).read()
 
 
+def get_instance(name):
+    return ExampleClass(name)
+
+
 class ExampleClass:
     def __init__(self, name: str = "from no param class"):
         self.name = name
 
     @preview
-    @preview("default for class2", class_params=preview.class_params(name="from class 2"))
-    @preview("default for class", class_params=preview.class_params(name="from class"))
+    @preview("default for class2", instance_provider=lambda: get_instance(name="from singleton"))
+    @preview("default for class1", instance_provider=lambda cls: cls(name="from class again"))
+    @preview("default for class", instance_provider=lambda: ExampleClass(name="from class"))
     def get_layout(self):
         return [
             [sg.Text(f"Hello, {self.name}")],
             [sg.Text("H1") for _ in range(6)],
         ]
 
-    @preview(class_params=preview.class_params("from property"))
+    @preview(instance_provider=lambda cls: cls("from property"))
     @property
     def layout(self):
         return [
