@@ -1,5 +1,5 @@
 import src.PySimplePreview.main as main
-from src.PySimplePreview.data.previews_storage import preview
+from src.PySimplePreview.view.api.preview import preview
 
 if __name__ == '__main__':
     main.main()

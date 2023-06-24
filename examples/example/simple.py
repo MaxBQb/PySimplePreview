@@ -2,7 +2,7 @@ import time
 
 import PySimpleGUI as sg
 
-from .condition_import import preview
+from src.PySimplePreview import preview
 
 
 def get_instance(name):
