@@ -1,18 +1,8 @@
-import sys
 import time
 
 import PySimpleGUI as sg
 
 from .condition_import import preview
-
-
-def preview2():
-    sg.Window(
-        "Example",
-        get_layout(),
-        size=(280, 280),
-        keep_on_top=True,
-        finalize=True).read()
 
 
 def get_instance(name):
@@ -76,7 +66,4 @@ def main():
 
 
 if __name__ == '__main__':
-    if sys.argv[1] == 'preview':
-        preview()
-    else:
-        main()
+    main()
