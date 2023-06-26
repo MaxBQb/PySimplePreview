@@ -11,12 +11,18 @@ def get_settings_layout(config: ConfigViewDTO, previews: tuple[ListItem, ...]):
     return [
         [sg.Text("Theme:"),
          sg.DropDown(sg.theme_list(), key="theme", enable_events=True,
-                     default_value=config.theme),
+                     default_value=config.theme)],
+        [sg.Text("Project:"),
+         sg.DropDown(
+             config.projects, key="project", enable_events=True,
+             default_value=config.current_project),
+         sg.Button("New", key="new_project"),
          ],
         [sg.Text("Preview:"),
          sg.DropDown(previews, key="preview", enable_events=True,
                      default_value=config.preview_key or (previews[0] if previews else "")),
-         ],
+         sg.Text("From: "+("Whole package" if config.is_package else "Only selected module"),
+                 visible=config.is_package is not None)],
     ]
 
 

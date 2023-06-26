@@ -1,52 +1,19 @@
-import glob
-import importlib.util
-import inspect
-import os.path
-import sys
 from contextlib import suppress
-from pathlib import Path
 
-from src.PySimplePreview.data.previews_storage import PreviewsStorage
-from src.PySimplePreview.domain.interactor.files_observer import FilesObserver
+from src.PySimplePreview.domain.interactor.files_observer import ProjectObserver
+from src.PySimplePreview.domain.interactor.module_loader import ModuleLoader
 from src.PySimplePreview.view.controllers import PreviewWindowController
 
 
-def load_module(path):
-    is_package = os.path.isdir(path) or path.endswith("__init__.py")
-    if path.endswith("__init__.py"):
-        path = os.path.dirname(path)
-    name = os.path.basename(path) if is_package else inspect.getmodulename(path)
-    module_path = os.path.join(path, '__init__.py') if is_package else path
-    print("Load", f"'{name}'", "package" if is_package else "module")
-    spec = importlib.util.spec_from_file_location(
-        name, module_path,
-        submodule_search_locations=[os.path.dirname(path)]
-    )
-    PreviewsStorage.get().previews.remove_module(Path(path))
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = module
-    try:
-        spec.loader.exec_module(module)
-    except Exception as e:
-        print("Error on import", f"'{name}'", "package" if is_package else "module")
-        print(e)
-        PreviewsStorage.get().previews.remove_module(Path(path))
-        del sys.modules[spec.name]
-
-
 def main():
-    root_path = "..\\..\\examples\\example"
     runner = PreviewWindowController()
+    module_loader = ModuleLoader.get()
 
     def on_modified(path: str):
-        load_module(path)
+        module_loader.load_module(path)
         runner.refresh_layout()
 
-    for module in glob.iglob(root_path + "\\**\\*.py", recursive=True):
-        load_module(module)
-
-    with FilesObserver.track(on_modified, root_path):
-        print("Start watching..")
+    with ProjectObserver.get().track(on_modified):
         with suppress(KeyboardInterrupt):
             print("Press Ctrl + C to exit")
             runner.refresh_layout()

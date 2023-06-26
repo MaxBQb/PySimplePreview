@@ -1,4 +1,6 @@
+import os.path
 import time
+from pathlib import Path
 from queue import Queue
 from typing import Callable
 
@@ -6,6 +8,7 @@ import PySimpleGUI as sg
 
 from src.PySimplePreview.data.config_storage import ConfigStorage
 from src.PySimplePreview.data.previews_storage import PreviewsStorage
+from src.PySimplePreview.domain.model.config import is_valid_project
 from src.PySimplePreview.domain.model.preview import LayoutProvider
 from src.PySimplePreview.view.layouts import get_settings_layout, get_preview_layout_frame, get_nocontent_layout
 from src.PySimplePreview.view.models import map_config_to_view, ListItem, shorten_preview_names
@@ -49,6 +52,7 @@ class PreviewWindowController:
         self._previews_storage = PreviewsStorage.get()
         self._window_holder = WindowHolder()
         self.queue = Queue()
+        self._configs_storage.on_update(lambda x: self.refresh_layout())
 
     @property
     def _config(self):
@@ -61,7 +65,8 @@ class PreviewWindowController:
     def make_layout(self, layout: Callable[[], list[list]]):
         config = map_config_to_view(self._config)
         names = tuple()
-        if self._previews.previews and config.preview_key:
+        if self._previews.previews and config.preview_key and \
+                self._config.last_preview_key in self._previews.previews:
             names = shorten_preview_names(self._previews.previews)
             name = names[self._previews.previews.index(self._config.last_preview_key)]
             config.preview_key.name = name
@@ -71,12 +76,12 @@ class PreviewWindowController:
                 ListItem.wrap_map(zip(self._previews.previews, names))
             ),
             [get_preview_layout_frame(layout, config.preview_key.value
-                                      if config.preview_key else "")],
+             if config.preview_key else "")],
         ]
 
     @property
     def layout(self) -> LayoutProvider | None:
-        if not self._config.last_preview_key or\
+        if not self._config.last_preview_key or \
                 self._config.last_preview_key not in self._previews.previews:
             self._config.last_preview_key = self._previews.first_preview_key
             self._configs_storage.save()
@@ -114,7 +119,7 @@ class PreviewWindowController:
             else:
                 time.sleep(1)
         except Exception as e:
-            print(e)
+            print("Error in controller:", e)
             time.sleep(1)
 
     def _handle_event(self, event, values):
@@ -123,15 +128,36 @@ class PreviewWindowController:
         elif event == "theme":
             self._config.theme = values[event]
             self._configs_storage.save()
-            self.refresh_layout()
+        elif event == "project":
+            self._config.current_project = Path(values[event])
+            self._configs_storage.save()
+        elif event == "new_project":
+            new_project = self.get_project_path()
+            if new_project:
+                self._config.current_project = new_project
+                self._config.projects += (new_project,)
+                self._configs_storage.save()
         elif event == "preview":
             self._config.last_preview_key = values[event].value
             self._configs_storage.save()
-            self.refresh_layout()
         elif event == "Configure":
             self._config.location = self._window_holder.window.current_location(True)
             self._config.size = self._window_holder.window.size
-            self._configs_storage.save()
+            self._configs_storage.save(False)
+
+    def get_project_path(self):
+        old_project_dir = self._config.current_project or "."
+        old_project_dir = os.path.dirname(str(old_project_dir))
+        project_module = sg.popup_get_file(
+            "Select root module (__init__) or single .py module",
+            "Add new module/package", keep_on_top=True, initial_folder=old_project_dir,
+            file_types=(("Python executable", "*.py"),)
+        )
+        if not project_module:
+            return
+        project_module = Path(project_module)
+        if is_valid_project(project_module):
+            return project_module
 
     def refresh_layout(self):
         self.layout = self.layout or get_nocontent_layout

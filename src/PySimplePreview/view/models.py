@@ -1,11 +1,12 @@
 
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Iterable, Any, Sequence
 
 import PySimpleGUI as sg
 
 from src.PySimplePreview.domain.interactor.previews_manager import PreviewsManager
-from src.PySimplePreview.domain.model.config import Config
+from src.PySimplePreview.domain.model.config import Config, is_package_project
 
 
 class ListItem:
@@ -24,6 +25,9 @@ class ListItem:
 @dataclass
 class ConfigViewDTO:
     preview_key: ListItem = None
+    current_project: str = None
+    is_package: bool = None
+    projects: tuple[str, ...] = tuple()
     theme: str = None
 
 
@@ -31,7 +35,10 @@ def map_config_to_view(config: Config):
     return ConfigViewDTO(
         preview_key=ListItem(config.last_preview_key, PreviewsManager.name_of(config.last_preview_key))
         if config.last_preview_key else None,
+        projects=tuple(str(x) for x in config.projects),
+        current_project=str(config.current_project) if config.current_project else None,
         theme=config.theme or sg.CURRENT_LOOK_AND_FEEL,
+        is_package=is_package_project(Path(config.current_project)) if config.current_project else None
     )
 
 
