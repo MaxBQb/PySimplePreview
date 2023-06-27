@@ -131,6 +131,9 @@ class PreviewWindowController:
         elif event == "project":
             self._config.current_project = Path(values[event])
             self._configs_storage.save()
+        elif event == "reload_all":
+            self._config.reload_all = values[event]
+            self._configs_storage.save()
         elif event == "new_project":
             new_project = self.get_project_path()
             if new_project:

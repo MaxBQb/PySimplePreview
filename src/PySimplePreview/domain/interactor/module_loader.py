@@ -46,6 +46,8 @@ class ModuleLoader:
             self.unload_module(path)
 
     def reload_all(self, path):
+        if self._config_storage.config.reload_all and self._last_imported:
+            self.hard_reload()
         self.unload_all()
         self.load_any(path)
 
@@ -81,3 +83,8 @@ class ModuleLoader:
             del self._imported[path]
             is_package = path.is_dir() or is_package_project(path)
             print("Package" if is_package else "Module", f"'{name}' unloaded")
+
+    def hard_reload(self):
+        python = sys.executable
+        os.execl(python, python, "\"{}\"".format(sys.argv[0]))
+        exit()

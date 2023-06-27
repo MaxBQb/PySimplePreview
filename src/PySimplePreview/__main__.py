@@ -1,15 +1,21 @@
 from contextlib import suppress
 
+from PySimplePreview.data.config_storage import ConfigStorage
 from PySimplePreview.domain.interactor.files_observer import ProjectObserver
 from PySimplePreview.domain.interactor.module_loader import ModuleLoader
 from PySimplePreview.view.controllers import PreviewWindowController
 
 
 def main():
+    config_storage = ConfigStorage.get()
     runner = PreviewWindowController()
     module_loader = ModuleLoader.get()
 
     def on_modified(path: str):
+        if config_storage.config.reload_all:
+            project = config_storage.config.current_project
+            if project:
+                module_loader.reload_all(project)
         module_loader.load_module(path)
         runner.refresh_layout()
 

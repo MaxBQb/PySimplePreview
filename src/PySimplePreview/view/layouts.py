@@ -11,7 +11,12 @@ def get_settings_layout(config: ConfigViewDTO, previews: tuple[ListItem, ...]):
     return [
         [sg.Text("Theme:"),
          sg.DropDown(sg.theme_list(), key="theme", enable_events=True,
-                     default_value=config.theme)],
+                     default_value=config.theme),
+         sg.Checkbox("Reload all", config.reload_all, key="reload_all",
+                     tooltip="On any change whole program will be reloaded (not recommended)"
+                             "\nUse this only if your layout depends on other module that is"
+                             "\nchanged at preview time",
+                     visible=config.is_package, enable_events=True)],
         [sg.Text("Project:"),
          sg.DropDown(
              config.projects, key="project", enable_events=True,

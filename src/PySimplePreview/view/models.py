@@ -27,6 +27,7 @@ class ConfigViewDTO:
     preview_key: ListItem = None
     current_project: str = None
     is_package: bool = None
+    reload_all: bool = False
     projects: tuple[str, ...] = tuple()
     theme: str = None
 
@@ -38,6 +39,7 @@ def map_config_to_view(config: Config):
         projects=tuple(str(x) for x in config.projects),
         current_project=str(config.current_project) if config.current_project else None,
         theme=config.theme or sg.CURRENT_LOOK_AND_FEEL,
+        reload_all=config.reload_all,
         is_package=is_package_project(Path(config.current_project)) if config.current_project else None
     )
 

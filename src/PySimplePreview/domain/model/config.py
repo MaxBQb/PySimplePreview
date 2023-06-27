@@ -7,6 +7,7 @@ class Config:
     last_preview_key: str = None
     current_project: Path = None
     projects: tuple[Path, ...] = tuple()
+    reload_all: bool = False
     theme: str = None
     size: tuple[int, int] = None, None
     location: tuple[int, int] = None, None
