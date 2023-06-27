@@ -2,7 +2,7 @@ import time
 
 import PySimpleGUI as sg
 
-from condition_import import preview
+from condition_import import preview, group_previews
 
 
 def get_instance(name):
@@ -17,6 +17,7 @@ class ExampleClass:
     @preview("default for class2", instance_provider=lambda: get_instance(name="from singleton"))
     @preview("default for class1", instance_provider=lambda cls: cls(name="from class again"))
     @preview("default for class", instance_provider=lambda: ExampleClass(name="from class"))
+    @group_previews("first group")
     def get_layout(self):
         return [
             [sg.Text(f"Hello, {self.name}")],
@@ -25,6 +26,7 @@ class ExampleClass:
 
     @preview(instance_provider=lambda cls: cls("from property"))
     @property
+    @group_previews("second group")
     def layout(self):
         return [
             [sg.Text(f"Hello, {self.name}")],
@@ -33,6 +35,7 @@ class ExampleClass:
 
     @preview(name="from static")
     @staticmethod
+    @group_previews("second group")
     def static_layout(name):
         return [
             [sg.Text(f"Hello, {name}")],
@@ -40,7 +43,7 @@ class ExampleClass:
         ]
 
 
-@preview("defaults1", "from preview defaults!!")
+@preview("defaults1", "from preview defaults!!", preview_group_name="first group")
 @preview
 def get_layout(name="world!!"):
     return [

@@ -65,15 +65,17 @@ class PreviewWindowController:
     def make_layout(self, layout: Callable[[], list[list]]):
         config = map_config_to_view(self._config)
         names = tuple()
-        if self._previews.previews and config.preview_key and \
-                self._config.last_preview_key in self._previews.previews:
-            names = shorten_preview_names(self._previews.previews)
-            name = names[self._previews.previews.index(self._config.last_preview_key)]
+        previews = self._previews.get_group(self._config.last_preview_group_key)
+        if previews and config.preview_key and \
+                self._config.last_preview_key in previews:
+            names = shorten_preview_names(previews)
+            name = names[previews.index(self._config.last_preview_key)]
             config.preview_key.name = name
         return [
             *get_settings_layout(
                 config,
-                ListItem.wrap_map(zip(self._previews.previews, names))
+                ListItem.wrap_map(zip(previews, names)),
+                ("*",) + self._previews.groups
             ),
             [get_preview_layout_frame(layout, config.preview_key.value
              if config.preview_key else "")],
@@ -81,9 +83,14 @@ class PreviewWindowController:
 
     @property
     def layout(self) -> LayoutProvider | None:
-        if not self._config.last_preview_key or \
-                self._config.last_preview_key not in self._previews.previews:
-            self._config.last_preview_key = self._previews.first_preview_key
+        changed = False
+        if not self._previews.get_group(self._config.last_preview_group_key):
+            self._config.last_preview_group_key = None
+            changed = True
+        if self._config.last_preview_key not in self._previews.get_group(self._config.last_preview_group_key):
+            self._config.last_preview_key = self._previews.first_preview_key(self._config.last_preview_group_key)
+            changed = True
+        if changed:
             self._configs_storage.save(False)
         new_layout = self._previews.get(self._config.last_preview_key)
         return new_layout.layout if new_layout else None
@@ -123,16 +130,20 @@ class PreviewWindowController:
             time.sleep(1)
 
     def _handle_event(self, event, values):
+        value = values.get(event) if values else None
         if event is None:
             self._window_holder.close()
         elif event == "theme":
-            self._config.theme = values[event]
+            self._config.theme = value
+            self._configs_storage.save()
+        elif event == "group":
+            self._config.last_preview_group_key = (None if value == "*" else value)
             self._configs_storage.save()
         elif event == "project":
-            self._config.current_project = Path(values[event])
+            self._config.current_project = Path(value)
             self._configs_storage.save()
         elif event == "reload_all":
-            self._config.reload_all = values[event]
+            self._config.reload_all = value
             self._configs_storage.save()
         elif event == "new_project":
             new_project = self.get_project_path()
@@ -141,7 +152,7 @@ class PreviewWindowController:
                 self._config.projects += (new_project,)
                 self._configs_storage.save()
         elif event == "preview":
-            self._config.last_preview_key = values[event].value
+            self._config.last_preview_key = value.value
             self._configs_storage.save()
         elif event == "Configure":
             self._config.location = self._window_holder.window.current_location(True)

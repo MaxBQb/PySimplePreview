@@ -7,7 +7,11 @@ from PySimplePreview.domain.model.preview import LayoutProvider
 from PySimplePreview.view.models import ConfigViewDTO, ListItem
 
 
-def get_settings_layout(config: ConfigViewDTO, previews: tuple[ListItem, ...]):
+def get_settings_layout(
+    config: ConfigViewDTO,
+    previews: tuple[ListItem, ...],
+    groups: tuple[str, ...],
+):
     return [
         [sg.Text("Theme:"),
          sg.DropDown(sg.theme_list(), key="theme", enable_events=True,
@@ -23,6 +27,10 @@ def get_settings_layout(config: ConfigViewDTO, previews: tuple[ListItem, ...]):
              default_value=config.current_project),
          sg.Button("New", key="new_project"),
          ],
+        [sg.Text("Group:", visible=len(groups) > 1),
+         sg.DropDown(groups, key="group", enable_events=True,
+                     visible=len(groups) > 1,
+                     default_value=config.last_preview_group_key)],
         [sg.Text("Preview:"),
          sg.DropDown(previews, key="preview", enable_events=True,
                      default_value=config.preview_key or (previews[0] if previews else "")),

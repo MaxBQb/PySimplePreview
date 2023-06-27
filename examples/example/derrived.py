@@ -1,5 +1,5 @@
-from examples.example.condition_import import preview
 import examples.example.simple
+from examples.example.condition_import import preview
 
 
 @preview

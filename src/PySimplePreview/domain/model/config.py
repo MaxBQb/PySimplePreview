@@ -5,6 +5,7 @@ from pathlib import Path
 @dataclass
 class Config:
     last_preview_key: str = None
+    last_preview_group_key: str = None
     current_project: Path = None
     projects: tuple[Path, ...] = tuple()
     reload_all: bool = False

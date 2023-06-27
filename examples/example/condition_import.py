@@ -1,7 +1,7 @@
 #  Use this to not couple with develop-only dependency
 try:  # Used when package installed
     # noinspection PyUnresolvedReferences
-    from PySimplePreview import preview
+    from PySimplePreview import preview, group_previews
 except ImportError:  # Used when no dependency found
     # noinspection PyUnusedLocal
     def preview(*args, **ignored):
@@ -12,3 +12,5 @@ except ImportError:  # Used when no dependency found
             return args[0]
 
         return dummy_wrapper
+
+    group_previews = preview
