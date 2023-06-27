@@ -2,9 +2,9 @@ import traceback
 
 import PySimpleGUI as sg
 
-from src.PySimplePreview.domain.interactor.previews_manager import PreviewsManager
-from src.PySimplePreview.domain.model.preview import LayoutProvider
-from src.PySimplePreview.view.models import ConfigViewDTO, ListItem
+from PySimplePreview.domain.interactor.previews_manager import PreviewsManager
+from PySimplePreview.domain.model.preview import LayoutProvider
+from PySimplePreview.view.models import ConfigViewDTO, ListItem
 
 
 def get_settings_layout(config: ConfigViewDTO, previews: tuple[ListItem, ...]):

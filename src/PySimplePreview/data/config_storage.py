@@ -2,7 +2,7 @@ from typing import Callable
 
 import jsons
 
-from src.PySimplePreview.domain.model.config import Config
+from PySimplePreview.domain.model.config import Config
 
 
 class ConfigStorage:

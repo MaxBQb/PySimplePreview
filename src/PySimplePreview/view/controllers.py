@@ -6,12 +6,12 @@ from typing import Callable
 
 import PySimpleGUI as sg
 
-from src.PySimplePreview.data.config_storage import ConfigStorage
-from src.PySimplePreview.data.previews_storage import PreviewsStorage
-from src.PySimplePreview.domain.model.config import is_valid_project
-from src.PySimplePreview.domain.model.preview import LayoutProvider
-from src.PySimplePreview.view.layouts import get_settings_layout, get_preview_layout_frame, get_nocontent_layout
-from src.PySimplePreview.view.models import map_config_to_view, ListItem, shorten_preview_names
+from PySimplePreview.data.config_storage import ConfigStorage
+from PySimplePreview.data.previews_storage import PreviewsStorage
+from PySimplePreview.domain.model.config import is_valid_project
+from PySimplePreview.domain.model.preview import LayoutProvider
+from PySimplePreview.view.layouts import get_settings_layout, get_preview_layout_frame, get_nocontent_layout
+from PySimplePreview.view.models import map_config_to_view, ListItem, shorten_preview_names
 
 
 class WindowHolder:

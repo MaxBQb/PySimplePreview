@@ -5,8 +5,8 @@ from typing import Iterable, Any, Sequence
 
 import PySimpleGUI as sg
 
-from src.PySimplePreview.domain.interactor.previews_manager import PreviewsManager
-from src.PySimplePreview.domain.model.config import Config, is_package_project
+from PySimplePreview.domain.interactor.previews_manager import PreviewsManager
+from PySimplePreview.domain.model.config import Config, is_package_project
 
 
 class ListItem:

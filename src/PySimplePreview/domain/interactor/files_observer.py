@@ -6,8 +6,8 @@ from typing import Callable
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
-from src.PySimplePreview.data.config_storage import ConfigStorage
-from src.PySimplePreview.domain.model.config import Config, is_package_project
+from PySimplePreview.data.config_storage import ConfigStorage
+from PySimplePreview.domain.model.config import Config, is_package_project
 
 
 class FilesObserver(FileSystemEventHandler):

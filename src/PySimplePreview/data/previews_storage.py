@@ -1,4 +1,4 @@
-from src.PySimplePreview.domain.interactor.previews_manager import PreviewsManager
+from PySimplePreview.domain.interactor.previews_manager import PreviewsManager
 
 
 class PreviewsStorage:

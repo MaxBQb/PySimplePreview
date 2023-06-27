@@ -1,8 +1,6 @@
-import time
-
 import PySimpleGUI as sg
 
-from src.PySimplePreview import preview
+from condition_import import preview
 
 
 @preview(name="from preview defaults!!")

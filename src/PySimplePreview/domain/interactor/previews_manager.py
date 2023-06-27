@@ -2,7 +2,7 @@ import inspect
 import warnings
 from pathlib import Path
 
-from src.PySimplePreview.domain.model.preview import LayoutProvider, Preview
+from PySimplePreview.domain.model.preview import LayoutProvider, Preview
 
 
 class PreviewsManager:

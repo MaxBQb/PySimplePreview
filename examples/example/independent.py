@@ -8,7 +8,7 @@ try:
         from PySimplePreview import preview
     except ImportError:  # Developer-only
         # noinspection PyUnresolvedReferences
-        from src.PySimplePreview import preview
+        from PySimplePreview import preview
 except ImportError:  # Used when no dependency found
     # noinspection PyUnusedLocal
     def preview(*args, **ignored):

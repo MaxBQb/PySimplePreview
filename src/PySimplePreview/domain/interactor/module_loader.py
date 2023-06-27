@@ -5,9 +5,9 @@ import os
 import sys
 from pathlib import Path
 
-from src.PySimplePreview.data.config_storage import ConfigStorage
-from src.PySimplePreview.data.previews_storage import PreviewsStorage
-from src.PySimplePreview.domain.model.config import is_package_project, Config
+from PySimplePreview.data.config_storage import ConfigStorage
+from PySimplePreview.data.previews_storage import PreviewsStorage
+from PySimplePreview.domain.model.config import is_package_project, Config
 
 
 class ModuleLoader:

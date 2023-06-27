@@ -1,8 +1,8 @@
 from contextlib import suppress
 
-from src.PySimplePreview.domain.interactor.files_observer import ProjectObserver
-from src.PySimplePreview.domain.interactor.module_loader import ModuleLoader
-from src.PySimplePreview.view.controllers import PreviewWindowController
+from PySimplePreview.domain.interactor.files_observer import ProjectObserver
+from PySimplePreview.domain.interactor.module_loader import ModuleLoader
+from PySimplePreview.view.controllers import PreviewWindowController
 
 
 def main():

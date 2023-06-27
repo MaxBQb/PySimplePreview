@@ -3,8 +3,8 @@ import typing
 from pathlib import Path
 from typing import Callable
 
-from src.PySimplePreview.data.previews_storage import PreviewsStorage
-from src.PySimplePreview.domain.interactor.previews_manager import get_longest_module_name
+from PySimplePreview.data.previews_storage import PreviewsStorage
+from PySimplePreview.domain.interactor.previews_manager import get_longest_module_name
 
 T = typing.TypeVar('T')
 INSTANCE_PROVIDER: typing.TypeAlias = Callable[[typing.Type[T]], T] | Callable[[], T]
