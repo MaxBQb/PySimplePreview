@@ -84,7 +84,7 @@ class PreviewWindowController:
         if not self._config.last_preview_key or \
                 self._config.last_preview_key not in self._previews.previews:
             self._config.last_preview_key = self._previews.first_preview_key
-            self._configs_storage.save()
+            self._configs_storage.save(False)
         new_layout = self._previews.get(self._config.last_preview_key)
         return new_layout.layout if new_layout else None
 
