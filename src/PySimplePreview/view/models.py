@@ -7,6 +7,7 @@ import PySimpleGUI as sg
 
 from PySimplePreview.domain.interactor.previews_manager import PreviewsManager
 from PySimplePreview.domain.model.config import Config, is_package_project
+from PySimplePreview.domain.model.position import Position
 
 
 class ListItem:
@@ -29,6 +30,7 @@ class ConfigViewDTO:
     current_project: str = None
     is_package: bool = None
     reload_all: bool = False
+    integrated_preview: bool = True
     projects: tuple[str, ...] = tuple()
     theme: str = None
 
@@ -41,9 +43,23 @@ def map_config_to_view(config: Config):
         current_project=str(config.current_project) if config.current_project else None,
         theme=config.theme or sg.CURRENT_LOOK_AND_FEEL,
         reload_all=config.reload_all,
+        integrated_preview=config.integrated_preview,
         last_preview_group_key=config.last_preview_group_key or "*",
         is_package=is_package_project(Path(config.current_project)) if config.current_project else None
     )
+
+
+@dataclass
+class PositionViewDTO:
+    size: tuple[int, int]
+    location: tuple[int, int]
+
+    @classmethod
+    def from_domain(cls, pos: Position):
+        return cls(
+            size=pos.size or (None, None),
+            location=pos.location or (None, None),
+        )
 
 
 def shorten_preview_names(keys: Iterable[str]):

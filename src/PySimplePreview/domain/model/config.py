@@ -1,5 +1,8 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Dict
+
+from PySimplePreview.domain.model.position import Position
 
 
 @dataclass
@@ -9,9 +12,9 @@ class Config:
     current_project: Path = None
     projects: tuple[Path, ...] = tuple()
     reload_all: bool = False
+    integrated_preview: bool = True
     theme: str = None
-    size: tuple[int, int] = None, None
-    location: tuple[int, int] = None, None
+    positions: Dict[str, Position] = field(default_factory=dict)
 
     def __post_init__(self):
         self.projects = tuple(

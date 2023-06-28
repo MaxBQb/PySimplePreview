@@ -3,12 +3,12 @@ from contextlib import suppress
 from PySimplePreview.data.config_storage import ConfigStorage
 from PySimplePreview.domain.interactor.files_observer import ProjectObserver
 from PySimplePreview.domain.interactor.module_loader import ModuleLoader
-from PySimplePreview.view.controllers import PreviewWindowController
+from PySimplePreview.view.controllers import PreviewSettingsWindowController
 
 
 def main():
     config_storage = ConfigStorage.get()
-    runner = PreviewWindowController()
+    runner = PreviewSettingsWindowController()
     module_loader = ModuleLoader.get()
 
     def on_modified(path: str):

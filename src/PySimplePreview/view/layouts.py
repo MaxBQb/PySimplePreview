@@ -8,9 +8,9 @@ from PySimplePreview.view.models import ConfigViewDTO, ListItem
 
 
 def get_settings_layout(
-    config: ConfigViewDTO,
-    previews: tuple[ListItem, ...],
-    groups: tuple[str, ...],
+        config: ConfigViewDTO,
+        previews: tuple[ListItem, ...],
+        groups: tuple[str, ...],
 ):
     return [
         [sg.Text("Theme:"),
@@ -20,7 +20,11 @@ def get_settings_layout(
                      tooltip="On any change whole program will be reloaded (not recommended)"
                              "\nUse this only if your layout depends on other module that is"
                              "\nchanged at preview time",
-                     visible=config.is_package, enable_events=True)],
+                     visible=config.is_package, enable_events=True),
+         sg.Button(
+             "Internal preview" if config.integrated_preview else "External preview",
+             key="integrated_preview", tooltip="Show preview below (Internal) or in separate window (External)",
+         )],
         [sg.Text("Project:"),
          sg.DropDown(
              config.projects, key="project", enable_events=True,
@@ -34,7 +38,7 @@ def get_settings_layout(
         [sg.Text("Preview:"),
          sg.DropDown(previews, key="preview", enable_events=True,
                      default_value=config.preview_key or (previews[0] if previews else "")),
-         sg.Text("From: "+("Whole package" if config.is_package else "Only selected module"),
+         sg.Text("From: " + ("Whole package" if config.is_package else "Only selected module"),
                  visible=config.is_package is not None)],
     ]
 
