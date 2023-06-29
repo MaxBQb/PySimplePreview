@@ -3,7 +3,7 @@ from contextlib import suppress
 from PySimplePreview.data.config_storage import ConfigStorage
 from PySimplePreview.domain.interactor.files_observer import ProjectObserver
 from PySimplePreview.domain.interactor.module_loader import ModuleLoader
-from PySimplePreview.view.controllers import PreviewSettingsWindowController
+from PySimplePreview.view.controller.preview_settings import PreviewSettingsWindowController
 
 
 def main():

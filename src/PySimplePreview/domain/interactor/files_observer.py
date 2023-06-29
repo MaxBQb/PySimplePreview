@@ -9,7 +9,7 @@ from watchdog.observers import Observer
 from PySimplePreview.data.config_storage import ConfigStorage
 from PySimplePreview.domain.interactor.module_loader import ModuleLoader
 from PySimplePreview.domain.model.config import Config, is_package_project
-from PySimplePreview.view.controllers import PreviewSettingsWindowController
+from PySimplePreview.view.controller.preview_settings import PreviewSettingsWindowController
 
 
 class FilesObserver(FileSystemEventHandler):

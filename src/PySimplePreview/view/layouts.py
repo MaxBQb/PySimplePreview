@@ -4,6 +4,7 @@ import PySimpleGUI as sg
 
 from PySimplePreview.domain.interactor.previews_manager import PreviewsManager
 from PySimplePreview.domain.model.preview import LayoutProvider
+from PySimplePreview.view.contracts import SettingsEvents
 from PySimplePreview.view.models import ConfigViewDTO, ListItem
 
 
@@ -14,29 +15,30 @@ def get_settings_layout(
 ):
     return [
         [sg.Text("Theme:"),
-         sg.DropDown(sg.theme_list(), key="theme", enable_events=True,
+         sg.DropDown(sg.theme_list(), key=SettingsEvents.THEME, enable_events=True,
                      default_value=config.theme),
-         sg.Checkbox("Reload all", config.reload_all, key="reload_all",
+         sg.Checkbox("Reload all", config.reload_all, key=SettingsEvents.RELOAD_ALL,
                      tooltip="On any change whole program will be reloaded (not recommended)"
                              "\nUse this only if your layout depends on other module that is"
                              "\nchanged at preview time",
                      visible=config.is_package, enable_events=True),
          sg.Button(
              "Internal preview" if config.integrated_preview else "External preview",
-             key="integrated_preview", tooltip="Show preview below (Internal) or in separate window (External)",
+             key=SettingsEvents.INTEGRATED_PREVIEW,
+             tooltip="Show preview below (Internal) or in separate window (External)",
          )],
         [sg.Text("Project:"),
          sg.DropDown(
-             config.projects, key="project", enable_events=True,
+             config.projects, key=SettingsEvents.PROJECT, enable_events=True,
              default_value=config.current_project),
-         sg.Button("New", key="new_project"),
+         sg.Button("New", key=SettingsEvents.NEW_PROJECT),
          ],
         [sg.Text("Group:"),
-         sg.DropDown(groups, key="group", enable_events=True,
+         sg.DropDown(groups, key=SettingsEvents.GROUP, enable_events=True,
                      disabled=len(groups) <= 1,
                      default_value=config.last_preview_group_key)],
         [sg.Text("Preview:"),
-         sg.DropDown(previews, key="preview", enable_events=True,
+         sg.DropDown(previews, key=SettingsEvents.PREVIEW, enable_events=True,
                      default_value=config.preview_key or (previews[0] if previews else "")),
          sg.Text("From: " + ("Whole package" if config.is_package else "Only selected module"),
                  visible=config.is_package is not None)],
