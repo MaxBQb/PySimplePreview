@@ -81,7 +81,7 @@ def shorten_preview_names(keys: Iterable[str]):
     indexes = set()
     while indexes := _find_not_uniq(result, indexes):
         for i in indexes:
-            result[i] = next(source[i])
+            result[i] = next(source[i], result[i])
     return tuple(result)
 
 
