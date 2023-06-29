@@ -8,7 +8,7 @@ from PySimplePreview.view.controllers import PreviewSettingsWindowController
 
 def main():
     config_storage = ConfigStorage.get()
-    runner = PreviewSettingsWindowController()
+    runner = PreviewSettingsWindowController.get()
     module_loader = ModuleLoader.get()
 
     def on_modified(path: str):
@@ -16,7 +16,7 @@ def main():
             project = config_storage.config.current_project
             if project:
                 module_loader.reload_all(project)
-        module_loader.load_module(path)
+        module_loader.load_module(path, True)
         runner.refresh_layout()
 
     with ProjectObserver.get().track(on_modified):

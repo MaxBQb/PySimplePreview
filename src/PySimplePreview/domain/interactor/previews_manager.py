@@ -21,6 +21,10 @@ class PreviewsManager:
             return self.previews or tuple()
         return tuple(self._groups.get(key, set()))
 
+    def clear(self):
+        self._previews.clear()
+        self._groups.clear()
+
     def remove_module(self, path: Path):
         keys = [key for key, preview in self._previews.items()
                 if preview.path.samefile(path)]

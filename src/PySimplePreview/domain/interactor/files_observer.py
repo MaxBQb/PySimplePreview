@@ -7,7 +7,9 @@ from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
 from PySimplePreview.data.config_storage import ConfigStorage
+from PySimplePreview.domain.interactor.module_loader import ModuleLoader
 from PySimplePreview.domain.model.config import Config, is_package_project
+from PySimplePreview.view.controllers import PreviewSettingsWindowController
 
 
 class FilesObserver(FileSystemEventHandler):
@@ -51,6 +53,8 @@ class ProjectObserver:
         return cls._instance
 
     def __init__(self):
+        self._runner = PreviewSettingsWindowController.get()
+        self._module_loader = ModuleLoader.get()
         self._observer: FilesObserver = None
         self.callback = lambda x: None
         self._config_storage = ConfigStorage.get()
@@ -84,6 +88,7 @@ class ProjectObserver:
         if config.current_project and self._last_project != config.current_project:
             self._last_project = config.current_project
             self.close()
+            self._runner.refresh_layout()
             self.start()
 
     @contextlib.contextmanager
@@ -94,3 +99,11 @@ class ProjectObserver:
             yield
         finally:
             self.close()
+
+    def _on_modified(self, path: str):
+        if self._config_storage.config.reload_all:
+            project = self._config_storage.config.current_project
+            if project:
+                self._module_loader.reload_all(project)
+        self._module_loader.load_module(path, True)
+        self._runner.refresh_layout()

@@ -160,6 +160,14 @@ class ExternalPreviewWindowController(BaseController):
 
 
 class PreviewSettingsWindowController(BaseController):
+    _instance = None
+
+    @classmethod
+    def get(cls):
+        if not cls._instance:
+            cls._instance = cls()
+        return cls._instance
+
     def __init__(self):
         super().__init__()
         self._previews_storage = PreviewsStorage.get()
@@ -284,7 +292,7 @@ class PreviewSettingsWindowController(BaseController):
         old_project_dir = self._config.current_project or "."
         old_project_dir = os.path.dirname(str(old_project_dir))
         project_module = sg.popup_get_file(
-            "Select root module (__init__) or single .py module",
+            "Select root module (__init__), single .py module, or directory (select file, then edit path as text)",
             "Add new module/package", keep_on_top=True, initial_folder=old_project_dir,
             file_types=(("Python executable", "*.py"),)
         )

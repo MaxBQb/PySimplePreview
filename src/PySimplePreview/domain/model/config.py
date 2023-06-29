@@ -1,3 +1,4 @@
+import glob
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict
@@ -26,8 +27,23 @@ class Config:
 
 
 def is_valid_project(path: Path):
-    return path.exists() and path.is_file() and path.suffix == ".py"
+    return path.exists() and (
+        path.is_file() and path.suffix == ".py" or
+        path.is_dir() and next(glob.iglob(str(path.joinpath("*.py"))), False)
+    )
+
+
+def get_package_root(path: Path):
+    if path.is_file():
+        path = path.parent
+    init = path.joinpath('__init__.py')
+    if init.exists():
+        return init
+    if next(glob.iglob(str(path.joinpath("*.py"))), False):
+        return path
+    return None
 
 
 def is_package_project(path: Path):
-    return path.name == '__init__.py'
+    return path.name == '__init__.py' or \
+        path.is_dir() and next(glob.iglob(str(path.joinpath("*.py"))), False)
