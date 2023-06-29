@@ -30,6 +30,12 @@ class PreviewsManager:
                 if preview.path.samefile(path)]
         for key in keys:
             del self._previews[key]
+            for group in self._groups.values():
+                if key in group:
+                    group.remove(key)
+        empty_groups = [key for key, value in self._groups.items() if not value]
+        for group in empty_groups:
+            del self._groups[group]
 
     def add_preview(
         self,
