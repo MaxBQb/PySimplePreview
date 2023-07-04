@@ -147,8 +147,7 @@ class PreviewSettingsWindowController(BaseController):
         elif event == SettingsEvents.NEW_PROJECT:
             new_project = self.get_project_path()
             if new_project:
-                self._config.current_project = new_project
-                self._config.projects += (new_project,)
+                self._config.add_project(new_project)
                 self._configs_storage.save()
         elif event == SettingsEvents.PREVIEW:
             self._config.last_preview_key = value.value

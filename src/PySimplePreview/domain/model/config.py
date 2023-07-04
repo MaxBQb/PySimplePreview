@@ -26,6 +26,15 @@ class Config:
             if not is_valid_project(self.current_project) or self.current_project not in self.projects:
                 self.current_project = None
 
+    def add_project(self, path: Path):
+        new_project = path.absolute()
+        for project in self.projects:
+            if project.samefile(new_project):
+                self.current_project = project
+                return
+        self.projects += (new_project,)
+        self.current_project = new_project
+
 
 def is_valid_project(path: Path):
     return path.exists() and (
