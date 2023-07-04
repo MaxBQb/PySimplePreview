@@ -18,8 +18,8 @@ class BaseController(metaclass=ABCMeta):
         self._configs_storage = config
         self._window_holder = WindowHolder()
         self._position_controller = PositionWithFallback(
-            lambda key: self._config.positions.get(key, None),
-            lambda key, value: self._config.positions.__setitem__(key, value),
+            lambda key: config.positions.get(key, None),
+            lambda key, value: config.positions.__setitem__(key, value),
             self.name,
             self.name,
             use_other=False

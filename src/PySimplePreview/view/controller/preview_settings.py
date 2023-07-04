@@ -136,6 +136,11 @@ class PreviewSettingsWindowController(BaseController):
         elif event == SettingsEvents.RELOAD_ALL:
             self._config.reload_all = value
             self._configs_storage.save()
+        elif event == SettingsEvents.REMEMBER_POSITIONS:
+            self._config.remember_positions = value
+            if value:
+                self._configs_storage.dump_positions()
+            self._configs_storage.save()
         elif event == SettingsEvents.INTEGRATED_PREVIEW:
             self._config.integrated_preview = not self._config.integrated_preview
             self._configs_storage.save()

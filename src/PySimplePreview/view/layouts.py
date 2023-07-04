@@ -32,12 +32,16 @@ def get_settings_layout(
          sg.DropDown(
              config.projects, key=SettingsEvents.PROJECT, enable_events=True,
              default_value=config.current_project),
-         sg.Button("New", key=SettingsEvents.NEW_PROJECT),
-         ],
+         sg.Button("New", key=SettingsEvents.NEW_PROJECT),],
         [sg.Text("Group:"),
          sg.DropDown(groups, key=SettingsEvents.GROUP, enable_events=True,
                      disabled=len(groups) <= 1,
-                     default_value=config.last_preview_group_key)],
+                     default_value=config.last_preview_group_key),
+         sg.Checkbox("Remember size and pos", config.remember_positions, key=SettingsEvents.REMEMBER_POSITIONS,
+                     tooltip="On any move or resize of an app's window, it's position and size "
+                             "\nwill be persisted in config. Already stored values will be used "
+                             "\nas default one, even with this setting turned off!",
+                     enable_events=True)],
         [sg.Text("Preview:"),
          sg.DropDown(previews, key=SettingsEvents.PREVIEW, enable_events=True,
                      default_value=config.preview_key or (previews[0] if previews else "")),

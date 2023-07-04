@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import Callable
 
 import jsons
@@ -12,7 +13,19 @@ class ConfigStorage:
         self.filename = filename
         self._on_update = InvokableEvent[Callable[[Config], None]]()
         self.on_update = self._on_update.base
-        self._updates_listeners = set()
+        self._positions = None
+
+    @property
+    def positions(self):
+        if self.config.remember_positions:
+            return self.config.positions
+        if not self._positions:
+            self._positions = deepcopy(self.config.positions)
+        return self._positions
+
+    def dump_positions(self):
+        if self._positions:
+            self.config.positions = self._positions
 
     @property
     def config(self) -> Config:

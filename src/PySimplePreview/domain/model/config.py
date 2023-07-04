@@ -13,6 +13,7 @@ class Config:
     current_project: Path = None
     projects: tuple[Path, ...] = tuple()
     reload_all: bool = False
+    remember_positions: bool = True
     integrated_preview: bool = True
     theme: str = None
     positions: Dict[str, Position] = field(default_factory=dict)
