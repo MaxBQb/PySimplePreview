@@ -25,6 +25,7 @@ class ExampleClass:
         ]
 
     @preview(instance_provider=lambda cls: cls("from property"))
+    @preview(preview_name="property with default params", is_method=True)
     @property
     @group_previews("second group")
     def layout(self):

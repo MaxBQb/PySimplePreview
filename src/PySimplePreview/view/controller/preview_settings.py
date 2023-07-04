@@ -10,7 +10,7 @@ from PySimplePreview.domain.interactor.abc.files_observer import ProjectObserver
 from PySimplePreview.domain.model.config import is_valid_project
 from PySimplePreview.domain.model.event import Listener
 from PySimplePreview.domain.model.position import Position
-from PySimplePreview.domain.model.preview import LayoutProvider
+from PySimplePreview.domain.model.preview import LAYOUT_PROVIDER
 from PySimplePreview.view.contracts import SettingsEvents
 from PySimplePreview.view.controller.base import BaseController
 from PySimplePreview.view.controller.external_preview_factory import ExternalPreviewWindowControllerFactory
@@ -34,6 +34,7 @@ class PreviewSettingsWindowController(BaseController):
             lambda _, __: self.refresh_layout(),
             Listener.Priority.Lowest,
         )
+        self._position_controller.other_key += "Minimized"
 
     def _get_layout(self):
         changed = False
@@ -61,20 +62,26 @@ class PreviewSettingsWindowController(BaseController):
             names = shorten_preview_names(previews)
             name = names[previews.index(self._config.last_preview_key)]
             config.preview_key.name = name
+
+        if not self._check_preview_integrated(self._config.last_preview_key):
+            config.integrated_preview_disabled = True
+            config.integrated_preview = False
+
         settings_layout = get_settings_layout(
             config,
             ListItem.wrap_map(zip(previews, names)),
             ("*",) + self._previews.groups
         )
-        if self._config.integrated_preview:
+        if self._is_preview_integrated:
             settings_layout += [[
                 get_preview_layout_frame(layout, self._config.last_preview_key or "")
             ]]
         return settings_layout
 
-    def _set_layout(self, layout: LayoutProvider):
+    def _set_layout(self, layout: LAYOUT_PROVIDER):
         if self._config.theme:
             sg.theme(self._config.theme)
+        self._position_controller.use_other = not self._is_preview_integrated
         window = sg.Window(
             "Python Simple Preview",
             self.make_layout(layout),
@@ -90,10 +97,25 @@ class PreviewSettingsWindowController(BaseController):
 
     def open_external_preview(self):
         key = self._config.last_preview_key
-        if self._config.integrated_preview:
+        if self._is_preview_integrated:
             self._external_previews_factory.remove()
         else:
             self._external_previews_factory.create(key)
+
+    @property
+    def _is_preview_integrated(self):
+        integrated = self._config.integrated_preview
+        if not integrated:
+            return False
+        return self._check_preview_integrated(self._config.last_preview_key)
+
+    def _check_preview_integrated(self, key: str | None):
+        if not key:
+            return True
+        preview = self._previews.get(key)
+        if not preview or preview.internal:
+            return True
+        return False
 
     def step(self):
         super().step()
@@ -116,10 +138,6 @@ class PreviewSettingsWindowController(BaseController):
             self._configs_storage.save()
         elif event == SettingsEvents.INTEGRATED_PREVIEW:
             self._config.integrated_preview = not self._config.integrated_preview
-            self._position = Position(
-                None,
-                self._position.location,
-            )
             self._configs_storage.save()
         elif event == SettingsEvents.NEW_PROJECT:
             new_project = self.get_project_path()
@@ -132,6 +150,12 @@ class PreviewSettingsWindowController(BaseController):
             self._configs_storage.save()
         else:
             super()._handle_event(event, values)
+
+    def _refresh_size(self):
+        self._position = Position(
+            None,
+            self._position.location,
+        )
 
     def get_project_path(self):
         old_project_dir = self._config.current_project or "."

@@ -4,7 +4,7 @@ import PySimpleGUI as sg
 
 from PySimplePreview.data.config_storage import ConfigStorage
 from PySimplePreview.data.previews_storage import PreviewsStorage
-from PySimplePreview.domain.model.preview import LayoutProvider
+from PySimplePreview.domain.model.preview import LAYOUT_PROVIDER
 from PySimplePreview.view.controller.base import BaseController
 from PySimplePreview.view.layouts import get_preview_layout_frame
 
@@ -19,6 +19,7 @@ class ExternalPreviewWindowController(BaseController):
         super().__init__(config)
         self.__key = preview_key
         self._previews_storage = previews
+        self._position_controller.other_key += "|" + preview_key
 
     @property
     def key(self):
@@ -37,8 +38,21 @@ class ExternalPreviewWindowController(BaseController):
             [get_preview_layout_frame(layout, self.key or "")],
         ]
 
-    def _set_layout(self, layout: LayoutProvider):
-        window = sg.Window(
+    def _set_layout(self, layout: LAYOUT_PROVIDER):
+        preview = self._previews.get(self.key)
+        window: sg.Window | None = None
+        self._position_controller.use_other = False
+        if preview and preview.window:
+            try:
+                layout_instance = layout()
+                if layout_instance:
+                    self._position_controller.use_other = True
+                    window = preview.window(*self._position.as_tuple, layout_instance)
+            except Exception as e:
+                self._position_controller.use_other = False
+                print("Error on custom window creation:", e)
+
+        window = window or sg.Window(
             f"External Python Simple Preview for {self.key}",
             self.make_layout(layout),
             keep_on_top=True,

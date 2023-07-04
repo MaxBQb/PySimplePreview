@@ -5,6 +5,7 @@ from typing import Callable
 
 from PySimplePreview.data.previews_storage import PreviewsStorage
 from PySimplePreview.domain.interactor.previews_manager import get_qualified_name
+from PySimplePreview.domain.model.preview import WINDOW_PROVIDER
 from PySimplePreview.view.app import Application
 
 T = typing.TypeVar('T')
@@ -19,6 +20,7 @@ def preview(
     is_method=False,
     instance_provider: INSTANCE_PROVIDER = None,
     preview_group_name: str = None,
+    preview_window_provider: WINDOW_PROVIDER = None,
     **kwargs,
 ):
     """
@@ -33,6 +35,8 @@ def preview(
     :param instance_provider: Source of method's class instances, this function can accept optional class parameter
         if no instance_provider set, default no-args constructor of class will be used.
     :param preview_group_name: Set package-global group name (previews can be grouped by this parameter value)
+    :param preview_window_provider: Custom `PySimpleGUI.Window` provider, callable that accept current size,
+        position and layout of window to display and returns finalized window
     :param kwargs: Any keyword arguments for source function to be called with on preview creation
     :return: Wraps methods with special class (will be erased after class initialisation),
         when function presented returns wrapper, which will return same function
@@ -53,6 +57,7 @@ def preview(
                 is_method=is_method,
                 instance_provider=provider,
                 preview_group_name=preview_group_name,
+                preview_window_provider=preview_window_provider,
                 **kwargs
             )(_f)
         )
@@ -73,6 +78,7 @@ def preview(
             layout_provider=layout_provider,
             module_path=module_path,
             group_name=group_name,
+            window_provider=preview_window_provider,
         )
         return func
 

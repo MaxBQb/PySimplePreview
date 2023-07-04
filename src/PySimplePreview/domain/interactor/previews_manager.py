@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Callable
 
 from PySimplePreview.domain.interactor.abc.module_loader import ModuleLoader
-from PySimplePreview.domain.model.preview import LayoutProvider, Preview
+from PySimplePreview.domain.model.preview import LAYOUT_PROVIDER, Preview, WINDOW_PROVIDER
 
 
 class PreviewsManager:
@@ -49,14 +49,19 @@ class PreviewsManager:
         self,
         name: str,
         module_path: Path,
-        layout_provider: LayoutProvider,
+        layout_provider: LAYOUT_PROVIDER,
         group_name: str = None,
+        window_provider: WINDOW_PROVIDER = None,
     ):
         if (not module_path.exists() or
                 not module_path.is_file() or
                 module_path.suffix != ".py"):
             raise ValueError("No python module found")
-        preview = Preview(module_path, layout_provider)
+        preview = Preview(
+            path=module_path,
+            layout=layout_provider,
+            window=window_provider,
+        )
         if name in self._previews:
             old_preview = self._previews[name]
             if old_preview.creation_time == preview.creation_time:

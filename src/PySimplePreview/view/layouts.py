@@ -3,7 +3,7 @@ import traceback
 import PySimpleGUI as sg
 
 from PySimplePreview.domain.interactor.previews_manager import PreviewsManager
-from PySimplePreview.domain.model.preview import LayoutProvider
+from PySimplePreview.domain.model.preview import LAYOUT_PROVIDER
 from PySimplePreview.view.contracts import SettingsEvents
 from PySimplePreview.view.models import ConfigViewDTO, ListItem
 
@@ -25,6 +25,7 @@ def get_settings_layout(
          sg.Button(
              "Internal preview" if config.integrated_preview else "External preview",
              key=SettingsEvents.INTEGRATED_PREVIEW,
+             disabled=config.integrated_preview_disabled,
              tooltip="Show preview below (Internal) or in separate window (External)",
          )],
         [sg.Text("Project:"),
@@ -45,7 +46,7 @@ def get_settings_layout(
     ]
 
 
-def get_preview_layout_frame(content: LayoutProvider, name=""):
+def get_preview_layout_frame(content: LAYOUT_PROVIDER, name=""):
     try:
         name = f"[{PreviewsManager.key_of(name)}]" if name else ""
         layout = content() or get_nocontent_layout()

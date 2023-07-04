@@ -31,6 +31,7 @@ class ConfigViewDTO:
     is_package: bool = None
     reload_all: bool = False
     integrated_preview: bool = True
+    integrated_preview_disabled: bool = False
     projects: tuple[str, ...] = tuple()
     theme: str = None
 
@@ -51,8 +52,8 @@ def map_config_to_view(config: Config):
 
 @dataclass
 class PositionViewDTO:
-    size: tuple[int, int]
-    location: tuple[int, int]
+    size: tuple[int, int] | tuple[None, None]
+    location: tuple[int, int] | tuple[None, None]
 
     @classmethod
     def from_domain(cls, pos: Position):
@@ -60,6 +61,10 @@ class PositionViewDTO:
             size=pos.size or (None, None),
             location=pos.location or (None, None),
         )
+
+    @property
+    def as_tuple(self):
+        return self.size, self.location
 
 
 def shorten_preview_names(keys: Iterable[str]):

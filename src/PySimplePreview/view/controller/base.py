@@ -6,8 +6,8 @@ import PySimpleGUI as sg
 
 from PySimplePreview.data.config_storage import ConfigStorage
 from PySimplePreview.domain.model.config import Config
-from PySimplePreview.domain.model.position import Position
-from PySimplePreview.domain.model.preview import LayoutProvider
+from PySimplePreview.domain.model.position import Position, PositionWithFallback
+from PySimplePreview.domain.model.preview import LAYOUT_PROVIDER
 from PySimplePreview.view.controller.utils import WindowHolder
 from PySimplePreview.view.layouts import get_nocontent_layout
 from PySimplePreview.view.models import PositionViewDTO
@@ -17,6 +17,13 @@ class BaseController(metaclass=ABCMeta):
     def __init__(self, config: ConfigStorage):
         self._configs_storage = config
         self._window_holder = WindowHolder()
+        self._position_controller = PositionWithFallback(
+            lambda key: self._config.positions.get(key, None),
+            lambda key, value: self._config.positions.__setitem__(key, value),
+            self.name,
+            self.name,
+            use_other=False
+        )
         self.queue = Queue()
 
     def _on_config_update(self, config: Config):
@@ -42,11 +49,11 @@ class BaseController(metaclass=ABCMeta):
 
     @property
     def _position(self):
-        return PositionViewDTO.from_domain(self._config.positions.get(self.name, Position()))
+        return PositionViewDTO.from_domain(self._position_controller.position)
 
     @_position.setter
     def _position(self, value: Position):
-        self._config.positions[self.name] = value
+        self._position_controller.position = value
         self._configs_storage.save(False)
 
     @property
@@ -70,11 +77,11 @@ class BaseController(metaclass=ABCMeta):
         pass
 
     @property
-    def layout(self) -> LayoutProvider | None:
+    def layout(self) -> LAYOUT_PROVIDER | None:
         return self._get_layout()
 
     @layout.setter
-    def layout(self, value: LayoutProvider):
+    def layout(self, value: LAYOUT_PROVIDER):
         self.queue.put_nowait(value)
 
     def _set_window(self, window: sg.Window):
