@@ -252,3 +252,4 @@ fabric.properties
 
 # End of https://mrkandreev.name/snippets/gitignore-generator/#venv,Python,Windows,PyCharm+all
 /src/PySimplePreview/config.json
+/examples/example/preview.py
