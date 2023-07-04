@@ -2,6 +2,7 @@ from typing import Callable
 
 import PySimpleGUI as sg
 
+from PySimplePreview.data.config_storage import ConfigStorage
 from PySimplePreview.data.previews_storage import PreviewsStorage
 from PySimplePreview.domain.model.preview import LayoutProvider
 from PySimplePreview.view.controller.base import BaseController
@@ -9,10 +10,15 @@ from PySimplePreview.view.layouts import get_preview_layout_frame
 
 
 class ExternalPreviewWindowController(BaseController):
-    def __init__(self, preview_key):
-        super().__init__()
+    def __init__(
+        self,
+        preview_key,
+        config: ConfigStorage,
+        previews: PreviewsStorage,
+    ):
+        super().__init__(config)
         self.__key = preview_key
-        self._previews_storage = PreviewsStorage.get()
+        self._previews_storage = previews
 
     @property
     def key(self):

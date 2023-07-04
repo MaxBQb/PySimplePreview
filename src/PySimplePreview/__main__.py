@@ -1,30 +1,14 @@
-from contextlib import suppress
+import punq
 
-from PySimplePreview.data.config_storage import ConfigStorage
-from PySimplePreview.domain.interactor.files_observer import ProjectObserver
-from PySimplePreview.domain.interactor.module_loader import ModuleLoader
-from PySimplePreview.view.controller.preview_settings import PreviewSettingsWindowController
+from PySimplePreview import di
+from PySimplePreview.view.app import Application
 
 
 def main():
-    config_storage = ConfigStorage.get()
-    runner = PreviewSettingsWindowController.get()
-    module_loader = ModuleLoader.get()
-
-    def on_modified(path: str):
-        if config_storage.config.reload_all:
-            project = config_storage.config.current_project
-            if project:
-                module_loader.reload_all(project)
-        module_loader.load_module(path, True)
-        runner.refresh_layout()
-
-    with ProjectObserver.get().track(on_modified):
-        with suppress(KeyboardInterrupt):
-            print("Press Ctrl + C to exit")
-            runner.refresh_layout()
-            while True:
-                runner.step()
+    container = punq.Container()
+    di.configure_di(container)
+    app: Application = container.resolve(Application)
+    app.run()
 
 
 if __name__ == '__main__':

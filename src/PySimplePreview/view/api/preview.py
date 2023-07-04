@@ -5,6 +5,7 @@ from typing import Callable
 
 from PySimplePreview.data.previews_storage import PreviewsStorage
 from PySimplePreview.domain.interactor.previews_manager import get_qualified_name
+from PySimplePreview.view.app import Application
 
 T = typing.TypeVar('T')
 INSTANCE_PROVIDER: typing.TypeAlias = Callable[[typing.Type[T]], T] | Callable[[], T]
@@ -67,7 +68,7 @@ def preview(
             layout_provider = lambda: func(instance_provider(), *args, **kwargs)
         else:
             layout_provider = lambda: func(*args, **kwargs)
-        PreviewsStorage.get().previews.add_preview(
+        Application.current.container.resolve(PreviewsStorage).previews.add_preview(
             name=qualname,
             layout_provider=layout_provider,
             module_path=module_path,

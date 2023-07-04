@@ -7,9 +7,9 @@ from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
 from PySimplePreview.data.config_storage import ConfigStorage
-from PySimplePreview.domain.interactor.module_loader import ModuleLoader
+from PySimplePreview.domain.interactor.abc.files_observer import ProjectObserver
 from PySimplePreview.domain.model.config import Config, is_package_project
-from PySimplePreview.view.controller.preview_settings import PreviewSettingsWindowController
+from PySimplePreview.domain.model.event import InvokableEvent
 
 
 class FilesObserver(FileSystemEventHandler):
@@ -43,23 +43,17 @@ class FilesObserver(FileSystemEventHandler):
         self.callback(event.src_path)
 
 
-class ProjectObserver:
-    _instance = None
-
-    @classmethod
-    def get(cls):
-        if not cls._instance:
-            cls._instance = cls()
-        return cls._instance
-
-    def __init__(self):
-        self._runner = PreviewSettingsWindowController.get()
-        self._module_loader = ModuleLoader.get()
+class ProjectObserverImpl(ProjectObserver):
+    def __init__(self, config: ConfigStorage):
+        super().__init__()
+        self.on_project_update = InvokableEvent.from_base(self.on_project_update)
         self._observer: FilesObserver = None
-        self.callback = lambda x: None
-        self._config_storage = ConfigStorage.get()
+        self._config_storage = config
         self._last_project: Path = None
-        self._config_storage.on_update(self._on_update)
+        self._config_storage.on_update += self._on_update
+
+    def _callback(self, path: str):
+        self.on_project_update.invoke(Path(path), False)
 
     def close(self):
         if self._observer:
@@ -68,7 +62,7 @@ class ProjectObserver:
 
     def _single_module_track(self, path: str):
         if self._last_project.samefile(path):
-            self.callback(path)
+            self._callback(path)
 
     def start(self):
         if not self._last_project:
@@ -76,7 +70,7 @@ class ProjectObserver:
         is_package = is_package_project(self._last_project)
         if not self._observer:
             self._observer = FilesObserver(
-                self.callback if is_package else self._single_module_track,
+                self._callback if is_package else self._single_module_track,
                 str(self._last_project.parent if self._last_project.is_file() else self._last_project)
             )
         self._observer.start()
@@ -88,22 +82,13 @@ class ProjectObserver:
         if config.current_project and self._last_project != config.current_project:
             self._last_project = config.current_project
             self.close()
-            self._runner.refresh_layout()
+            self.on_project_update.invoke(config.current_project, True)
             self.start()
 
     @contextlib.contextmanager
-    def track(self, callback: Callable[[str], ...]):
+    def track(self):
         try:
-            self.callback = callback
             self._on_update(self._config_storage.config)
             yield
         finally:
             self.close()
-
-    def _on_modified(self, path: str):
-        if self._config_storage.config.reload_all:
-            project = self._config_storage.config.current_project
-            if project:
-                self._module_loader.reload_all(project)
-        self._module_loader.load_module(path, True)
-        self._runner.refresh_layout()

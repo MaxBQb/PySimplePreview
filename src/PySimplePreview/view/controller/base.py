@@ -14,11 +14,10 @@ from PySimplePreview.view.models import PositionViewDTO
 
 
 class BaseController(metaclass=ABCMeta):
-    def __init__(self):
-        self._configs_storage = ConfigStorage.get()
+    def __init__(self, config: ConfigStorage):
+        self._configs_storage = config
         self._window_holder = WindowHolder()
         self.queue = Queue()
-        self._configs_storage.on_update(self._on_config_update)
 
     def _on_config_update(self, config: Config):
         self.refresh_layout()

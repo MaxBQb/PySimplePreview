@@ -3,20 +3,28 @@ import warnings
 from pathlib import Path
 from typing import Callable
 
+from PySimplePreview.domain.interactor.abc.module_loader import ModuleLoader
 from PySimplePreview.domain.model.preview import LayoutProvider, Preview
 
 
 class PreviewsManager:
     NAME_SEP = ':'
 
-    def __init__(self):
+    def __init__(self, loader: ModuleLoader):
         self._previews: dict[str, Preview] = dict()
         self._groups: dict[str, set[str]] = dict()
+        loader.on_event += self._on_module_event
+
+    def _on_module_event(self, event: ModuleLoader.EventType, path: Path):
+        if event == ModuleLoader.EventType.ModuleUnloaded:
+            self.remove_module(path)
+        elif event == ModuleLoader.EventType.PackageReloadStarted:
+            self.clear()
 
     def get(self, key: str):
         return self._previews.get(key)
 
-    def get_group(self, key: str):
+    def get_group(self, key: str | None):
         if key is None:
             return self.previews or tuple()
         return tuple(self._groups.get(key, set()))

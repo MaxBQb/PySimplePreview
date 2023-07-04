@@ -6,33 +6,43 @@ import sys
 from pathlib import Path
 
 from PySimplePreview.data.config_storage import ConfigStorage
-from PySimplePreview.data.previews_storage import PreviewsStorage
+from PySimplePreview.domain.interactor.abc.files_observer import ProjectObserver
+from PySimplePreview.domain.interactor.abc.module_loader import ModuleLoader
 from PySimplePreview.domain.interactor.previews_manager import get_longest_module_name
 from PySimplePreview.domain.model.config import is_package_project, Config, get_package_root
+from PySimplePreview.domain.model.event import InvokableEvent
 
 
-class ModuleLoader:
-    _instance = None
-
-    @classmethod
-    def get(cls):
-        if not cls._instance:
-            cls._instance = cls()
-        return cls._instance
-
-    def __init__(self):
+class ModuleLoaderImpl(ModuleLoader):
+    def __init__(self, config: ConfigStorage, project_observer: ProjectObserver):
+        super().__init__()
+        self.on_event = InvokableEvent.from_base(self.on_event)
         self._imported = dict()
         self._extra_imported = set()
         self._last_imported = None
-        self._config_storage = ConfigStorage.get()
-        self._previews = PreviewsStorage.get().previews
-        self._config_storage.on_update(self._on_update)
+        self._config_storage = config
+        self._config_storage.on_update += self._on_update
+        project_observer.on_project_update += self._on_module_update
+
+    def setup(self):
         self._on_update(self._config_storage.config)
 
     def _on_update(self, config: Config):
         if config.current_project and self._last_imported != config.current_project:
             self.reload_all(Path(config.current_project))
             self._last_imported = config.current_project
+
+    def _on_module_update(self, path: Path, is_project: bool):
+        if is_project and path and self._last_imported != path:
+            self.reload_all(path)
+            self._last_imported = path
+            return
+        if self._config_storage.config.reload_all:
+            project = self._config_storage.config.current_project
+            if project:
+                self.reload_all(project)
+        else:
+            self.load_module(path, True)
 
     def load_any(self, path: str | Path):
         path = Path(path)
@@ -56,14 +66,16 @@ class ModuleLoader:
             if module in sys.modules:
                 del sys.modules[module]
         self._extra_imported.clear()
-        self._previews.clear()
         importlib.invalidate_caches()
 
     def reload_all(self, path):
+        self.on_event.invoke(ModuleLoader.EventType.PackageReloadStarted, path)
         if self._config_storage.config.reload_all and self._last_imported:
-            self.hard_reload()
+            self._hard_reload()
+            return
         self.unload_all()
         self.load_any(path)
+        self.on_event.invoke(ModuleLoader.EventType.PackageReloadEnded, path)
 
     def load_module(self, path: str | Path, reload=False):
         path = Path(path)
@@ -102,13 +114,13 @@ class ModuleLoader:
             new_modules = set(sys.modules.keys())
             diff_modules = new_modules.difference(old_modules)
             self._extra_imported |= diff_modules
+            self.on_event.invoke(ModuleLoader.EventType.ModuleLoaded, module_path)
         except Exception as e:
             print("Error on import", f"'{name}'", "package" if is_package else "module")
             print(e)
             self.unload_module(module_path)
 
     def unload_module(self, path: Path):
-        self._previews.remove_module(path)
         if path in self._imported:
             name = self._imported[path]
             if name in sys.modules:
@@ -116,8 +128,9 @@ class ModuleLoader:
             del self._imported[path]
             is_package = path.is_dir() or is_package_project(path)
             print("Package" if is_package else "Module", f"'{name}' unloaded")
+        self.on_event.invoke(ModuleLoader.EventType.ModuleUnloaded, path)
 
-    def hard_reload(self):
+    def _hard_reload(self):
         python = sys.executable
         os.execl(python, python, "\"{}\"".format(sys.argv[0]))
         exit()
