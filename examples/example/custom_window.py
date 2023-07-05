@@ -1,6 +1,6 @@
 import PySimpleGUI as sg
 
-from condition_import import preview
+from condition_import import preview, method_preview, params
 
 
 def get_preview_window(
@@ -26,14 +26,14 @@ class ExampleClass:
     def __init__(self, name: str = "from no param class"):
         self.name = name
 
-    @preview(is_method=True, preview_window_provider=get_preview_window)
+    @method_preview(window_provider=get_preview_window)
     def get_layout(self):
         return [
             [sg.Text(f"Hello, {self.name}")],
             [sg.Text("H1") for _ in range(6)],
         ]
 
-    @preview(is_method=True, preview_window_provider=get_preview_window)
+    @method_preview(window_provider=get_preview_window)
     @property
     def layout(self):
         return [
@@ -41,8 +41,8 @@ class ExampleClass:
             [sg.Text("H1") for _ in range(6)],
         ]
 
-    @preview(name="from static", preview_window_provider=get_preview_window)
     @staticmethod
+    @preview(call_params=params("from static"), window_provider=get_preview_window)
     def static_layout(name):
         return [
             [sg.Text(f"Hello, {name}")],
@@ -50,7 +50,7 @@ class ExampleClass:
         ]
 
 
-@preview(preview_window_provider=get_preview_window)
+@preview(window_provider=get_preview_window)
 def get_layout(name="world!!"):
     return [
         [sg.Text(f"Hello, {name}")],

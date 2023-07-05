@@ -2,13 +2,9 @@ import PySimpleGUI as sg
 
 
 #  Use this to not couple with develop-only dependency
-try:
-    try:  # Used when package installed
-        # noinspection PyUnresolvedReferences
-        from PySimplePreview import preview
-    except ImportError:  # Developer-only
-        # noinspection PyUnresolvedReferences
-        from PySimplePreview import preview
+try:  # Used when package installed
+    # noinspection PyUnresolvedReferences
+    from PySimplePreview import *
 except ImportError:  # Used when no dependency found
     # noinspection PyUnusedLocal
     def preview(*args, **ignored):
@@ -19,6 +15,9 @@ except ImportError:  # Used when no dependency found
             return args[0]
 
         return dummy_wrapper
+
+    group_previews = preview
+    method_previews = preview
 
 
 @preview

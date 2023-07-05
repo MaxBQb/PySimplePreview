@@ -9,92 +9,103 @@ from PySimplePreview.domain.model.preview import WINDOW_PROVIDER
 from PySimplePreview.view.app import Application
 
 T = typing.TypeVar('T')
+Ts = typing.TypeVarTuple("Ts")
+T2s = typing.TypeVarTuple("T2s")
 INSTANCE_PROVIDER: typing.TypeAlias = Callable[[typing.Type[T]], T] | Callable[[], T]
-LAYOUT_HOLDER: typing.TypeAlias = Callable[[...], list[list]]
+LAYOUT_HOLDER: typing.TypeAlias = Callable[..., list[list]]
 SUPPORTED_LAYOUT_HOLDERS: typing.TypeAlias = LAYOUT_HOLDER | '_MethodPreview' | property | staticmethod
+PARAMS: typing.TypeAlias = tuple[tuple[*Ts], dict[str, *T2s]]
+PARAMS_PROVIDER: typing.TypeAlias = Callable[[], PARAMS]
 
 
-def preview(
-    preview_name: str = None,
-    *args,
-    is_method=False,
-    instance_provider: INSTANCE_PROVIDER = None,
-    preview_group_name: str = None,
-    preview_window_provider: WINDOW_PROVIDER = None,
-    **kwargs,
+def params(*args, **kwargs):
+    return args, kwargs
+
+
+def _unpack(value: PARAMS_PROVIDER | PARAMS) -> PARAMS:
+    if isinstance(value, tuple):
+        return value
+    return value()
+
+
+def _wrap_method_params(self, method_params: PARAMS_PROVIDER | PARAMS):
+    args, kwargs = _unpack(method_params)
+    return params(self, *args, **kwargs)
+
+
+def _call_with_params(func: Callable[[*Ts, *T2s], T], func_params: PARAMS_PROVIDER | PARAMS):
+    args, kwargs = _unpack(func_params)
+    return func(*args, **kwargs)
+
+
+def _preview(
+    name: str = None,
+    group_name: str = None,
+    window_provider: WINDOW_PROVIDER = None,
+    call_params: PARAMS_PROVIDER | PARAMS = params
 ):
-    """
-    | Marks function/method/property as source of layout for live preview
-    | No-params form can be called without parentheses
-
-    :param preview_name: Custom preview name, shown instead of (sometimes with) regular function name
-    :param args: Any positional arguments for source function to be called with on preview creation
-    :param is_method: Determines if callable is a method.
-        Automatically set to True, on applying to **property**, or when **class_params** set.
-        Do not use this on **staticmethod**.
-    :param instance_provider: Source of method's class instances, this function can accept optional class parameter
-        if no instance_provider set, default no-args constructor of class will be used.
-    :param preview_group_name: Set package-global group name (previews can be grouped by this parameter value)
-    :param preview_window_provider: Custom `PySimpleGUI.Window` provider, callable that accept current size,
-        position and layout of window to display and returns finalized window
-    :param kwargs: Any keyword arguments for source function to be called with on preview creation
-    :return: Wraps methods with special class (will be erased after class initialisation),
-        when function presented returns wrapper, which will return same function
-    """
-    function_to_wrap: SUPPORTED_LAYOUT_HOLDERS = None
-    if preview_name is not None and not isinstance(preview_name, str):
-        function_to_wrap = preview_name
-        preview_name = None
-        is_method |= _MethodPreview.is_method(function_to_wrap)
-    is_method |= instance_provider is not None
-
-    if is_method and not getattr(instance_provider, '_instance_provided', False):
-        return _MethodPreview(
-            function=function_to_wrap,
-            instance_provider=instance_provider,
-            on_instance_received=lambda provider, _f: preview(
-                preview_name, *args,
-                is_method=is_method,
-                instance_provider=provider,
-                preview_group_name=preview_group_name,
-                preview_window_provider=preview_window_provider,
-                **kwargs
-            )(_f)
-        )
-
-    def get_layout(func: SUPPORTED_LAYOUT_HOLDERS):
-        group_name = getattr(func, "preview_group_name", None)
-        func = _MethodPreview.extract_function(func)
-        group_name = getattr(func, "preview_group_name", group_name)
-        group_name = preview_group_name or group_name
-        module_path = Path(inspect.getfile(func))
-        qualname = get_qualified_name(func, module_path, preview_name)
-        if instance_provider:
-            layout_provider = lambda: func(instance_provider(), *args, **kwargs)
-        else:
-            layout_provider = lambda: func(*args, **kwargs)
+    def get_layout(f: LAYOUT_HOLDER):
+        _group_name = getattr(f, "preview_group_name", None)
+        _group_name = group_name or _group_name
+        module_path = Path(inspect.getfile(f))
+        qualname = get_qualified_name(f, module_path, name)
         Application.current.container.resolve(PreviewsStorage).previews.add_preview(
             name=qualname,
-            layout_provider=layout_provider,
+            layout_provider=lambda: _call_with_params(f, call_params),
             module_path=module_path,
             group_name=group_name,
-            window_provider=preview_window_provider,
+            window_provider=window_provider,
         )
-        return func
-
-    if function_to_wrap:
-        return get_layout(function_to_wrap)
+        return f
     return get_layout
+
+
+def preview(*args, **kwargs):
+    func = args[0] if len(args) else None
+    if func is None or isinstance(func, str):
+        return _preview(*args, **kwargs)
+    return _preview(*args[1:], **kwargs)(func)
+
+
+def _method_preview(
+    name: str = None,
+    group_name: str = None,
+    window_provider: WINDOW_PROVIDER = None,
+    instance_provider: INSTANCE_PROVIDER = None,
+    call_params: PARAMS_PROVIDER | PARAMS = params,
+):
+    def get_layout(_instance_provider, _meth: SUPPORTED_LAYOUT_HOLDERS):
+        _group_name = getattr(_meth, "preview_group_name", None)
+        _meth = _MethodPreview.extract_function(_meth)
+        _group_name = getattr(_meth, "preview_group_name", _group_name)
+        _meth.preview_group_name = _group_name
+        return preview(
+            name=name,
+            group_name=group_name,
+            window_provider=window_provider,
+            call_params=lambda: _wrap_method_params(_instance_provider(), call_params)
+        )(_meth)
+
+    return _MethodPreview(
+        instance_provider=instance_provider,
+        on_instance_received=get_layout
+    )
+
+
+def method_preview(*args, **kwargs):
+    func = args[0] if len(args) else None
+    if func is None or isinstance(func, str):
+        return _method_preview(*args, **kwargs)
+    return _method_preview(*args[1:], **kwargs)(func)
 
 
 class _MethodPreview:
     def __init__(
         self,
-        function: SUPPORTED_LAYOUT_HOLDERS,
         instance_provider: INSTANCE_PROVIDER = None,
         on_instance_received: Callable[[typing.Any, LAYOUT_HOLDER], LAYOUT_HOLDER] = None,
     ):
-        self.function = function
+        self.function = None
         self.instance_provider = instance_provider
         self.on_instance_received = on_instance_received
 
@@ -109,13 +120,6 @@ class _MethodPreview:
             return self.instance_provider()
         return self.instance_provider(class_)
 
-    @staticmethod
-    def is_method(f: SUPPORTED_LAYOUT_HOLDERS):
-        return f is not None and (
-            isinstance(f, _MethodPreview)
-            or isinstance(f, property)
-        )
-
     def __set_name__(self, owner, name):
         # replace self with the original method
         setattr(owner, name, self.function)
@@ -124,9 +128,7 @@ class _MethodPreview:
         except AttributeError:
             self.function.class_name = owner.__name__
         self.function = self.extract_function(getattr(owner, name))
-        provider = lambda: self._make_instance(owner)
-        provider._instance_provided = True
-        self.function = self.on_instance_received(provider, self.function)
+        self.function = self.on_instance_received(lambda: self._make_instance(owner), self.function)
 
     @staticmethod
     def extract_function(value: SUPPORTED_LAYOUT_HOLDERS):
