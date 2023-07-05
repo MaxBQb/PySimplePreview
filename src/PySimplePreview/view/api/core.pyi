@@ -1,17 +1,28 @@
-import typing
-from typing import Callable, overload
-
+from typing import overload
+from PySimplePreview.view.api._types import *
+from PySimplePreview.view.api._utils import MethodPreview
 from PySimplePreview.domain.model.preview import WINDOW_PROVIDER
 
-T = typing.TypeVar('T')
-Ts = typing.TypeVarTuple("Ts")
-T2s = typing.TypeVarTuple("T2s")
-INSTANCE_PROVIDER: typing.TypeAlias = Callable[[typing.Type[T]], T] | Callable[[], T]
-LAYOUT_HOLDER: typing.TypeAlias = Callable[[...], list[list]]
-SUPPORTED_LAYOUT_HOLDERS: typing.TypeAlias = LAYOUT_HOLDER | '_MethodPreview' | property | staticmethod
-PARAMS: typing.TypeAlias = tuple[tuple[*Ts], dict[str, *T2s]]
-PARAMS_PROVIDER: typing.TypeAlias = Callable[[], tuple[tuple[*Ts], dict[str, *T2s]]]
 
+F = typing.TypeVar("F", bound=LAYOUT_HOLDER)
+
+
+@overload
+def group_previews(func: F) -> F:
+    ...
+
+
+@overload
+def group_previews(group_name: str = None) -> typing.Callable[[F], F]:
+    """
+    | Set default value of **group_name** parameter for all **@[method_]preview**'s above it
+    | Use this on functions with multiple previews applied
+    | No-params form can be called without parentheses
+
+    :param group_name: Custom previews group name, if nothing presented function name used
+    :return: Returns wrapper, which will return same function as was consumed
+    """
+    ...
 
 
 def params(*args: Ts, **kwargs: T2s) -> tuple[tuple[*Ts], dict[str, *T2s]]:
@@ -25,10 +36,6 @@ def params(*args: Ts, **kwargs: T2s) -> tuple[tuple[*Ts], dict[str, *T2s]]:
     :return: All values received packed as one value
     """
     ...
-
-
-F = typing.TypeVar("F", bound=LAYOUT_HOLDER)
-
 
 @overload
 def preview(func: F) -> F: ...
@@ -59,7 +66,7 @@ def preview(
     ...
 
 
-M = typing.TypeVar("M", LAYOUT_HOLDER, _MethodPreview, property, staticmethod)
+M = typing.TypeVar("M", LAYOUT_HOLDER, MethodPreview, property, staticmethod)
 
 
 @overload
@@ -92,5 +99,3 @@ def method_preview(
     :return: Wraps method with special class (will be replaced back to `M` after owner class initialisation)
     """
     ...
-
-class _MethodPreview: ...
