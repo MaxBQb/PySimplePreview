@@ -1,4 +1,5 @@
 import os
+import sys
 from pathlib import Path
 from typing import Callable
 
@@ -152,6 +153,8 @@ class PreviewSettingsWindowController(BaseController):
         elif event == SettingsEvents.PREVIEW:
             self._config.last_preview_key = value.value
             self._configs_storage.save()
+        elif event is None:
+            sys.exit()
         else:
             super()._handle_event(event, values)
 
