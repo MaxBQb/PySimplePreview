@@ -10,3 +10,8 @@ class SettingsEvents(Enum):
     INTEGRATED_PREVIEW = auto()
     NEW_PROJECT = auto()
     PREVIEW = auto()
+    TOGGLE_LOG = auto()
+    LOGGING_LEVEL = auto()
+    LOGGING_DESTINATION = auto()
+    LOG_FILE_PATH = auto()
+    LOG = auto()

@@ -3,9 +3,10 @@ import traceback
 import PySimpleGUI as sg
 
 from PySimplePreview.domain.interactor.previews_manager import PreviewsManager
+from PySimplePreview.domain.model.log_config import LogConfig
 from PySimplePreview.domain.model.preview import LAYOUT_PROVIDER
 from PySimplePreview.view.contracts import SettingsEvents
-from PySimplePreview.view.models import ConfigViewDTO, ListItem
+from PySimplePreview.view.models import ConfigViewDTO, ListItem, LogConfigViewDTO
 
 
 def get_settings_layout(
@@ -13,7 +14,7 @@ def get_settings_layout(
         previews: tuple[ListItem, ...],
         groups: tuple[str, ...],
 ):
-    return [[sg.Column(justification='center', p=8, s=(445, 115), layout=[[
+    return [[sg.Column(justification='center', p=(8, 2), s=(445, 116), layout=[[
         sg.Text("Theme:", s=6, p=0),
         sg.DropDown(
             sg.theme_list(),
@@ -73,11 +74,12 @@ def get_settings_layout(
             enable_events=True,
             default_value=config.preview_key or (previews[0] if previews else ""),
         ),
+        sg.Button("Log", font=("Consolas", 8), p=(3, 3), key=SettingsEvents.TOGGLE_LOG),
         sg.Text(
-            "From: " + ("Whole package" if config.is_package else "Only selected module"),
+            "From: " + ("Package" if config.is_package else "Single module"),
             visible=config.is_package is not None,
             justification='right',
-            s=21, p=((4, 0), 0),
+            s=15, p=((21, 0), 0),
         ),
     ],
     ])]]
@@ -103,3 +105,51 @@ def get_preview_layout_frame(content: LAYOUT_PROVIDER, name=""):
 
 def get_nocontent_layout():
     return [[sg.Text("No content found")]]
+
+
+def get_log_layout(config: LogConfigViewDTO, log: str):
+    show_file_selection = config.write_to == LogConfig.LoggingDestination.FILE.name
+    return [[
+        sg.Column(justification='center', p=(8, 0), s=(445, (55 if show_file_selection else 28)), layout=[[
+            sg.Text("Level:", s=6, p=((0, 5), 4)),
+            sg.DropDown(
+                config.levels, config.level,
+                enable_events=True, s=9, p=0,
+                key=SettingsEvents.LOGGING_LEVEL,
+            ),
+            sg.Text(s=18, p=0),
+            sg.Text("Write to:", p=((0, 2), 0)),
+            sg.DropDown(
+                config.write_to_options, config.write_to,
+                enable_events=True, s=10, p=0,
+                key=SettingsEvents.LOGGING_DESTINATION,
+            ),
+        ], [
+            sg.Text(
+                "Path:",
+                tooltip="Path where log file should be saved",
+                p=((0, 5), 4),
+                s=6, visible=show_file_selection,
+            ),
+            sg.Input(
+                config.file_path or "Not set",
+                readonly=True, s=48, p=0,
+                visible=show_file_selection,
+                disabled_readonly_background_color=sg.theme_input_background_color(),
+            ),
+            sg.Button(
+                "...", initial_folder="./logs",
+                file_types=(("Log files", "*.log"),),
+                font=("Tahoma", 8), p=((6, 0), 4), s=3,
+                visible=show_file_selection,
+                button_type=sg.BUTTON_TYPE_SAVEAS_FILE,
+                key=SettingsEvents.LOG_FILE_PATH,
+            ),
+        ]]), ],
+        [sg.Multiline(
+            default_text=log, autoscroll=True,
+            disabled=True, font=('Consolas', 8),
+            expand_x=True, key=SettingsEvents.LOG,
+            pad=(6, 6), s=(0, 10)
+        )]
+    ]

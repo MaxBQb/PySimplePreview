@@ -7,6 +7,7 @@ import PySimpleGUI as sg
 
 from PySimplePreview.domain.interactor.previews_manager import PreviewsManager
 from PySimplePreview.domain.model.config import Config, is_package_project
+from PySimplePreview.domain.model.log_config import LogConfig
 from PySimplePreview.domain.model.position import Position
 
 
@@ -67,6 +68,25 @@ class PositionViewDTO:
     @property
     def as_tuple(self):
         return self.size, self.location
+
+
+@dataclass
+class LogConfigViewDTO:
+    show_settings: bool
+    level: str
+    levels = tuple(level.name for level in LogConfig.LoggingLevel)
+    write_to: str
+    write_to_options = tuple(level.name for level in LogConfig.LoggingDestination)
+    file_path: Path
+
+
+def map_log_config_to_view(config: LogConfig):
+    return LogConfigViewDTO(
+        show_settings=config.show_settings,
+        level=config.level.name,
+        write_to=config.write_to.name,
+        file_path=config.file_path.absolute() if config.file_path else None,
+    )
 
 
 def shorten_preview_names(keys: Iterable[str]):

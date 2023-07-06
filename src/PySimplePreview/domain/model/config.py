@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict
 
+from PySimplePreview.domain.model.log_config import LogConfig
 from PySimplePreview.domain.model.position import Position
 
 
@@ -16,6 +17,7 @@ class Config:
     remember_positions: bool = True
     integrated_preview: bool = True
     theme: str = None
+    logging: LogConfig = field(default_factory=LogConfig)
     positions: Dict[str, Position] = field(default_factory=dict)
 
     def __post_init__(self):

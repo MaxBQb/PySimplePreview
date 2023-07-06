@@ -10,13 +10,15 @@ from PySimplePreview.data.previews_storage import PreviewsStorage
 from PySimplePreview.domain.interactor.abc.files_observer import ProjectObserver
 from PySimplePreview.domain.model.config import is_valid_project
 from PySimplePreview.domain.model.event import Listener
+from PySimplePreview.domain.model.log_config import LogConfig
 from PySimplePreview.domain.model.position import Position
 from PySimplePreview.domain.model.preview import LAYOUT_PROVIDER
 from PySimplePreview.view.contracts import SettingsEvents
 from PySimplePreview.view.controller.base import BaseController
 from PySimplePreview.view.controller.external_preview_factory import ExternalPreviewWindowControllerFactory
-from PySimplePreview.view.layouts import get_settings_layout, get_preview_layout_frame
-from PySimplePreview.view.models import map_config_to_view, shorten_preview_names, ListItem
+from PySimplePreview.view.layouts import get_settings_layout, get_preview_layout_frame, get_log_layout
+from PySimplePreview.view.log import LoggingConfigurator
+from PySimplePreview.view.models import map_config_to_view, shorten_preview_names, ListItem, map_log_config_to_view
 
 
 class PreviewSettingsWindowController(BaseController):
@@ -26,16 +28,31 @@ class PreviewSettingsWindowController(BaseController):
         previews_storage: PreviewsStorage,
         project_observer: ProjectObserver,
         external_previews_factory: ExternalPreviewWindowControllerFactory,
+        logging_configurator: LoggingConfigurator,
     ):
         super().__init__(config)
         self._previews_storage = previews_storage
         self._external_previews_factory = external_previews_factory
+        self._logging_configurator = logging_configurator
+        logging_configurator.on_write += self._update_log
         config.on_update += self._on_config_update
         project_observer.on_project_update += Listener(
             lambda _, __: self.refresh_layout(),
             Listener.Priority.Lowest,
         )
         self._position_controller.other_key += "Minimized"
+
+    def _update_log(self, text: str):
+        if not self._window_holder.window:
+            return
+        if not self._config.logging.show_settings:
+            return
+        if self._window_holder.window.is_closed():
+            return
+        log: sg.Multiline = self._window_holder.window.find_element(SettingsEvents.LOG, True)
+        if not log:
+            return
+        log.write(text)
 
     def _get_layout(self):
         changed = False
@@ -73,6 +90,11 @@ class PreviewSettingsWindowController(BaseController):
             ListItem.wrap_map(zip(previews, names)),
             ("*",) + self._previews.groups
         )
+        if self._config.logging.show_settings:
+            settings_layout += get_log_layout(
+                map_log_config_to_view(self._config.logging),
+                self._logging_configurator.current_log
+            )
         if self._is_preview_integrated:
             settings_layout += [[
                 get_preview_layout_frame(layout, self._config.last_preview_key or "")
@@ -93,6 +115,9 @@ class PreviewSettingsWindowController(BaseController):
             finalize=True,
             alpha_channel=0.0,
         )
+        if self._config.logging.show_settings:
+            log: sg.Multiline = window[SettingsEvents.LOG]
+            log.set_vscroll_position(1)
         super()._set_window(window)
         self.open_external_preview()
 
@@ -152,6 +177,18 @@ class PreviewSettingsWindowController(BaseController):
                 self._configs_storage.save()
         elif event == SettingsEvents.PREVIEW:
             self._config.last_preview_key = value.value
+            self._configs_storage.save()
+        elif event == SettingsEvents.TOGGLE_LOG:
+            self._config.logging.show_settings ^= True  # Toggle
+            self._configs_storage.save()
+        elif event == SettingsEvents.LOGGING_LEVEL:
+            self._config.logging.level = LogConfig.LoggingLevel[value]
+            self._configs_storage.save()
+        elif event == SettingsEvents.LOGGING_DESTINATION:
+            self._config.logging.write_to = LogConfig.LoggingDestination[value]
+            self._configs_storage.save()
+        elif event == SettingsEvents.LOG_FILE_PATH:
+            self._config.logging.file_path = Path(value)
             self._configs_storage.save()
         elif event is None:
             sys.exit()
