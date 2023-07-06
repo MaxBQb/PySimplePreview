@@ -1,4 +1,5 @@
 import inspect
+import logging
 import warnings
 from pathlib import Path
 from typing import Callable
@@ -65,7 +66,7 @@ class PreviewsManager:
         if name in self._previews:
             old_preview = self._previews[name]
             if old_preview.creation_time == preview.creation_time:
-                warnings.warn(f"Preview with key '{name}' already exists! (overwrite applied)")
+                logging.warning(f"Preview with key '{name}' already exists! (overwrite applied)")
         self._previews[name] = preview
         if group_name:
             self._groups.setdefault(group_name, set())

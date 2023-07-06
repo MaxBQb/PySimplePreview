@@ -1,6 +1,7 @@
 import glob
 import importlib.util
 import inspect
+import logging
 import os
 import sys
 from pathlib import Path
@@ -85,7 +86,7 @@ class ModuleLoaderImpl(ModuleLoader):
         name = path.stem if is_package else inspect.getmodulename(str(path))
         module_path = path.joinpath('__init__.py') if is_package else path
         if not module_path.exists():
-            print(f"Resolve package '{name}' as flat (no __init__ found)")
+            logging.info(f"Package '{name}' resolved as flat (no __init__ found)")
             return
         old_modules = set(sys.modules.keys())
         root_path = str(path if path.is_dir() else path.parent)
@@ -101,10 +102,11 @@ class ModuleLoaderImpl(ModuleLoader):
                 self.unload_module(module_path)
             else:
                 return
-        print("Load", f"'{name}'", "package" if is_package else "module")
+        module_naming = "package" if is_package else "module"
+        logging.info(f"Loading {module_naming} '{name}'")
         module = importlib.util.module_from_spec(spec)
         if '.'.join(get_longest_module_name(module_path)) in self._extra_imported and not reload:
-            print("Already loaded")
+            logging.info(f"{module_naming.title()} '{name}' is already loaded, skipping...")
             self._imported[module_path] = spec.name
             return
         sys.modules[spec.name] = module
@@ -116,8 +118,10 @@ class ModuleLoaderImpl(ModuleLoader):
             self._extra_imported |= diff_modules
             self.on_event.invoke(ModuleLoader.EventType.ModuleLoaded, module_path)
         except Exception as e:
-            print("Error on import", f"'{name}'", "package" if is_package else "module")
-            print(e)
+            logging.exception(
+                f"Can't import '{name}' {module_naming}",
+                exc_info=e
+            )
             self.unload_module(module_path)
 
     def unload_module(self, path: Path):
@@ -127,7 +131,7 @@ class ModuleLoaderImpl(ModuleLoader):
                 del sys.modules[name]
             del self._imported[path]
             is_package = path.is_dir() or is_package_project(path)
-            print("Package" if is_package else "Module", f"'{name}' unloaded")
+            logging.info(("Package" if is_package else "Module") + f" '{name}' unloaded")
         self.on_event.invoke(ModuleLoader.EventType.ModuleUnloaded, path)
 
     def _hard_reload(self):

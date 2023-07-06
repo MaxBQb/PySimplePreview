@@ -1,3 +1,4 @@
+import logging
 from copy import deepcopy
 from typing import Callable
 
@@ -39,8 +40,11 @@ class ConfigStorage:
             with open(self.filename, 'r', encoding='utf-8-sig') as file:
                 self._config = jsons.loads(file.read(), Config)
         except (OSError, jsons.DeserializationError) as e:
-            print("Error occurred while loading config:", e)
-            print("Override with latest correct version...")
+            logging.exception(
+                "Load config failed, "
+                "file will be overwritten with latest loaded version...",
+                exc_info=e
+            )
             self.save(False)
 
     def save(self, dispatch_changes=True):

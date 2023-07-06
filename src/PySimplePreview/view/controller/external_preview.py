@@ -1,3 +1,4 @@
+import logging
 from typing import Callable
 
 import PySimpleGUI as sg
@@ -50,7 +51,7 @@ class ExternalPreviewWindowController(BaseController):
                     window = preview.window(*self._position.as_tuple, layout_instance)
             except Exception as e:
                 self._position_controller.use_other = False
-                print("Error on custom window creation:", e)
+                logging.exception("Custom window creation failed. Fallback to default one.", exc_info=e)
 
         window = window or sg.Window(
             f"External Python Simple Preview for {self.key}",

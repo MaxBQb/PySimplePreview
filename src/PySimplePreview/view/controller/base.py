@@ -1,3 +1,4 @@
+import logging
 import time
 from abc import ABCMeta, abstractmethod
 from queue import Queue
@@ -44,7 +45,7 @@ class BaseController(metaclass=ABCMeta):
             else:
                 time.sleep(1)
         except Exception as e:
-            print("Error in controller", f"({self.name}):", e)
+            logging.exception(f"Error in controller '{self.name}'", exc_info=e)
             time.sleep(1)
 
     @property

@@ -1,4 +1,5 @@
 import contextlib
+import logging
 import time
 from pathlib import Path
 from typing import Callable
@@ -75,8 +76,8 @@ class ProjectObserverImpl(ProjectObserver):
             )
         self._observer.start()
         project_name = self._last_project.parent.name if is_package else self._last_project.stem
-        print("Start watching", "package" if is_package else "single module",
-              f"'{project_name}'...")
+        logging.info("Start watching " + ("package" if is_package else "single module")
+                     + f" '{project_name}'...")
 
     def _on_update(self, config: Config):
         if config.current_project and self._last_project != config.current_project:
