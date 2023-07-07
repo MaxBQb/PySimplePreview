@@ -1,7 +1,6 @@
 import os
 import sys
 from pathlib import Path
-from typing import Callable
 
 import PySimpleGUI as sg
 

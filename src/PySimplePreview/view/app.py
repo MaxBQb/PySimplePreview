@@ -1,9 +1,7 @@
-import logging
 from contextlib import suppress
 
 import punq
 
-from PySimplePreview.data import config_storage
 from PySimplePreview.data.config_storage import ConfigStorage
 from PySimplePreview.domain.interactor.abc.files_observer import ProjectObserver
 from PySimplePreview.domain.interactor.abc.module_loader import ModuleLoader

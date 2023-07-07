@@ -1,4 +1,5 @@
 import inspect
+
 from PySimplePreview.view.api._types import *
 
 

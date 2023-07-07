@@ -1,8 +1,8 @@
 from typing import overload
+
+from PySimplePreview.domain.model.preview import WINDOW_PROVIDER
 from PySimplePreview.view.api._types import *
 from PySimplePreview.view.api._utils import MethodPreview
-from PySimplePreview.domain.model.preview import WINDOW_PROVIDER
-
 
 F = typing.TypeVar("F", bound=LAYOUT_HOLDER)
 

@@ -1,11 +1,10 @@
-import inspect
 from pathlib import Path
 
 from PySimplePreview.data.previews_storage import PreviewsStorage
 from PySimplePreview.domain.interactor.previews_manager import get_qualified_name
 from PySimplePreview.domain.model.preview import WINDOW_PROVIDER
-from PySimplePreview.view.api._utils import *
 from PySimplePreview.view.api._types import *
+from PySimplePreview.view.api._utils import *
 from PySimplePreview.view.app import Application
 
 
