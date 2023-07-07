@@ -37,7 +37,7 @@ def _preview(
             name=qualname,
             layout_provider=lambda: call_with_params(f, call_params),
             module_path=module_path,
-            group_name=group_name,
+            group_name=_group_name,
             window_provider=window_provider,
         )
         return f
