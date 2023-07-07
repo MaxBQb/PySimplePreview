@@ -6,7 +6,7 @@ import PySimpleGUI as sg
 
 from PySimplePreview.domain.interactor.previews_manager import PreviewsManager
 from PySimplePreview.domain.model.log_config import LogConfig
-from PySimplePreview.domain.model.preview import LAYOUT_PROVIDER
+from PySimplePreview.domain.model.preview import LAYOUT_PROVIDER, LAYOUT
 from PySimplePreview.view.contracts import SettingsEvents
 from PySimplePreview.view.models import ConfigViewDTO, ListItem, LogConfigViewDTO
 
@@ -113,7 +113,7 @@ def get_nocontent_layout():
 def get_unpacked_layout(
     content: LAYOUT_PROVIDER,
     no_content: LAYOUT_PROVIDER = get_nocontent_layout,
-    error_content: typing.Callable[[Exception], list[list]] = get_exception_layout,
+    error_content: typing.Callable[[Exception], LAYOUT] = get_exception_layout,
 ):
     try:
         result = content()

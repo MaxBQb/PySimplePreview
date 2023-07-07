@@ -12,7 +12,7 @@ from PySimplePreview.domain.model.config import is_valid_project
 from PySimplePreview.domain.model.event import Listener
 from PySimplePreview.domain.model.log_config import LogConfig
 from PySimplePreview.domain.model.position import Position
-from PySimplePreview.domain.model.preview import LAYOUT_PROVIDER
+from PySimplePreview.domain.model.preview import LAYOUT_PROVIDER, LAYOUT
 from PySimplePreview.view.contracts import SettingsEvents
 from PySimplePreview.view.controller.base import BaseController
 from PySimplePreview.view.controller.external_preview_factory import ExternalPreviewWindowControllerFactory
@@ -72,7 +72,7 @@ class PreviewSettingsWindowController(BaseController):
     def _previews(self):
         return self._previews_storage.previews
 
-    def make_layout(self, layout: Callable[[], list[list]]):
+    def make_layout(self, layout: LAYOUT_PROVIDER):
         config = map_config_to_view(self._config)
         names = tuple()
         previews = self._previews.get_group(self._config.last_preview_group_key)
@@ -118,7 +118,7 @@ class PreviewSettingsWindowController(BaseController):
 
     def _make_window(
         self,
-        layout: list[list],
+        layout: LAYOUT,
         size: tuple[int, int] | tuple[None, None],
         location: tuple[int, int] | tuple[None, None],
     ) -> sg.Window:

@@ -1,12 +1,13 @@
 import PySimpleGUI as sg
 
+from PySimplePreview.domain.model.preview import LAYOUT
 from condition_import import preview, method_preview, params
 
 
 def get_preview_window(
     size: tuple[int, int] | tuple[None, None],
     location: tuple[int, int] | tuple[None, None],
-    layout: list[list]
+    layout: LAYOUT
 ):
     return sg.Window(
         f"Custom window title",

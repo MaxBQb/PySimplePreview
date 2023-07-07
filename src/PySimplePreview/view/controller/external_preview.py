@@ -5,7 +5,7 @@ import PySimpleGUI as sg
 
 from PySimplePreview.data.config_storage import ConfigStorage
 from PySimplePreview.data.previews_storage import PreviewsStorage
-from PySimplePreview.domain.model.preview import LAYOUT_PROVIDER
+from PySimplePreview.domain.model.preview import LAYOUT_PROVIDER, LAYOUT
 from PySimplePreview.view.controller.base import BaseController
 from PySimplePreview.view.layouts import get_preview_layout_frame, get_unpacked_layout, get_exception_layout
 
@@ -35,7 +35,7 @@ class ExternalPreviewWindowController(BaseController):
     def _previews(self):
         return self._previews_storage.previews
 
-    def make_layout(self, layout: Callable[[], list[list]]):
+    def make_layout(self, layout: LAYOUT_PROVIDER):
         return [
             [get_preview_layout_frame(layout, self.key or "")],
         ]
@@ -66,7 +66,7 @@ class ExternalPreviewWindowController(BaseController):
 
     def _make_window(
         self,
-        layout: list[list],
+        layout: LAYOUT,
         size: tuple[int, int] | tuple[None, None],
         location: tuple[int, int] | tuple[None, None],
     ) -> sg.Window:

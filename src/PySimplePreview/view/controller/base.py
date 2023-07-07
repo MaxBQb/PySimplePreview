@@ -9,7 +9,7 @@ import PySimpleGUI as sg
 from PySimplePreview.data.config_storage import ConfigStorage
 from PySimplePreview.domain.model.config import Config
 from PySimplePreview.domain.model.position import Position, PositionWithFallback
-from PySimplePreview.domain.model.preview import LAYOUT_PROVIDER
+from PySimplePreview.domain.model.preview import LAYOUT_PROVIDER, LAYOUT
 from PySimplePreview.view.controller.utils import WindowHolder
 from PySimplePreview.view.layouts import get_nocontent_layout
 from PySimplePreview.view.models import PositionViewDTO
@@ -36,8 +36,8 @@ class BaseController(metaclass=ABCMeta):
         pass
 
     def make_window(self,
-                    layout: list[list],
-                    fallback_layout: typing.Callable[[Exception], list[list]]) -> sg.Window:
+                    layout: LAYOUT,
+                    fallback_layout: typing.Callable[[Exception], LAYOUT]) -> sg.Window:
         try:
             window = self._make_window(layout, *self._position.as_tuple)
             window.finalize()
@@ -51,7 +51,7 @@ class BaseController(metaclass=ABCMeta):
     @abstractmethod
     def _make_window(
         self,
-        layout: list[list],
+        layout: LAYOUT,
         size: tuple[int, int] | tuple[None, None],
         location: tuple[int, int] | tuple[None, None],
     ) -> sg.Window:

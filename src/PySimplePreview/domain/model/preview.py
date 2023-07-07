@@ -5,11 +5,12 @@ from pathlib import Path
 
 import PySimpleGUI as sg
 
-LAYOUT_PROVIDER: typing.TypeAlias = typing.Callable[[], list[list]]
+LAYOUT: typing.TypeAlias = list[list[sg.Element]]
+LAYOUT_PROVIDER: typing.TypeAlias = typing.Callable[[], LAYOUT]
 WINDOW_PROVIDER: typing.TypeAlias = typing.Callable[[
     tuple[int, int] | tuple[None, None],
     tuple[int, int] | tuple[None, None],
-    list[list]
+    LAYOUT,
 ], sg.Window]
 
 
