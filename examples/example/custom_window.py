@@ -14,7 +14,6 @@ def get_preview_window(
         location=location,
         size=size,
         resizable=True,
-        finalize=True,
         alpha_channel=0.0,
         keep_on_top=True,
         disable_minimize=True,
@@ -54,5 +53,5 @@ class ExampleClass:
 def get_layout(name="world!!"):
     return [
         [sg.Text(f"Hello, {name}")],
-        [sg.Text("H1") for _ in range(6)],
+        [sg.Text("H1", font=("Tahoma", 8)) for _ in range(6)],
     ]

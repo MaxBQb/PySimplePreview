@@ -1,4 +1,6 @@
+import logging
 import traceback
+import typing
 
 import PySimpleGUI as sg
 
@@ -86,25 +88,42 @@ def get_settings_layout(
 
 
 def get_preview_layout_frame(content: LAYOUT_PROVIDER, name=""):
-    try:
-        name = f"[{PreviewsManager.key_of(name)}]" if name else ""
-        layout = content() or get_nocontent_layout()
-    except Exception as e:
-        message = str(e) + "\n".join(traceback.format_tb(e.__traceback__))
-        layout = [
-            [sg.Text("Error:")],
-            [sg.Multiline(
-                default_text=message,
-                disabled=True, font=('Consolas', 10),
-                expand_y=True, expand_x=True,
-                pad=(6, 6),
-            )]
-        ]
+    name = f"[{PreviewsManager.key_of(name)}]" if name else ""
+    layout = get_unpacked_layout(content)
     return sg.Frame("Preview" + f' for {name}' if name else '', expand_x=True, expand_y=True, layout=layout)
+
+
+def get_exception_layout(e: Exception):
+    message = str(e) + "\n".join(traceback.format_tb(e.__traceback__))
+    return [
+        [sg.Text("Error:")],
+        [sg.Multiline(
+            default_text=message,
+            disabled=True, font=('Consolas', 10),
+            expand_y=True, expand_x=True,
+            pad=(6, 6),
+        )]
+    ]
 
 
 def get_nocontent_layout():
     return [[sg.Text("No content found")]]
+
+
+def get_unpacked_layout(
+    content: LAYOUT_PROVIDER,
+    no_content: LAYOUT_PROVIDER = get_nocontent_layout,
+    error_content: typing.Callable[[Exception], list[list]] = get_exception_layout,
+):
+    try:
+        result = content()
+        if not result:
+            logging.warning("User defined layout have no content")
+            return no_content()
+        return result
+    except Exception as e:
+        logging.error(f"User defined layout can't be built: {e}")
+        return error_content(e)
 
 
 def get_log_layout(config: LogConfigViewDTO, log: str):

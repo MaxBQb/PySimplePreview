@@ -1,5 +1,6 @@
 import logging
 import time
+import typing
 from abc import ABCMeta, abstractmethod
 from queue import Queue
 
@@ -32,6 +33,28 @@ class BaseController(metaclass=ABCMeta):
 
     @abstractmethod
     def _set_layout(self, layout):
+        pass
+
+    def make_window(self,
+                    layout: list[list],
+                    fallback_layout: typing.Callable[[Exception], list[list]]) -> sg.Window:
+        try:
+            window = self._make_window(layout, *self._position.as_tuple)
+            window.finalize()
+            return window
+        except Exception as e:
+            logging.error(f"User defined layout can't be rendered: {e}")
+            window = self._make_window(fallback_layout(e), *self._position.as_tuple)
+            window.finalize()
+            return window
+
+    @abstractmethod
+    def _make_window(
+        self,
+        layout: list[list],
+        size: tuple[int, int] | tuple[None, None],
+        location: tuple[int, int] | tuple[None, None],
+    ) -> sg.Window:
         pass
 
     def step(self):

@@ -16,7 +16,8 @@ from PySimplePreview.domain.model.preview import LAYOUT_PROVIDER
 from PySimplePreview.view.contracts import SettingsEvents
 from PySimplePreview.view.controller.base import BaseController
 from PySimplePreview.view.controller.external_preview_factory import ExternalPreviewWindowControllerFactory
-from PySimplePreview.view.layouts import get_settings_layout, get_preview_layout_frame, get_log_layout
+from PySimplePreview.view.layouts import get_settings_layout, get_preview_layout_frame, get_log_layout, \
+    get_exception_layout
 from PySimplePreview.view.log import LoggingConfigurator
 from PySimplePreview.view.models import map_config_to_view, shorten_preview_names, ListItem, map_log_config_to_view
 
@@ -105,21 +106,32 @@ class PreviewSettingsWindowController(BaseController):
         if self._config.theme:
             sg.theme(self._config.theme)
         self._position_controller.use_other = not self._is_preview_integrated
-        window = sg.Window(
-            "Python Simple Preview",
+        window = self.make_window(
             self.make_layout(layout),
-            keep_on_top=True,
-            location=self._position.location,
-            size=self._position.size,
-            resizable=True,
-            finalize=True,
-            alpha_channel=0.0,
+            lambda e: self.make_layout(lambda: get_exception_layout(e))
         )
         if self._config.logging.show_settings:
             log: sg.Multiline = window[SettingsEvents.LOG]
             log.set_vscroll_position(1)
         super()._set_window(window)
         self.open_external_preview()
+
+    def _make_window(
+        self,
+        layout: list[list],
+        size: tuple[int, int] | tuple[None, None],
+        location: tuple[int, int] | tuple[None, None],
+    ) -> sg.Window:
+        return sg.Window(
+            "Python Simple Preview",
+            layout,
+            keep_on_top=True,
+            location=location,
+            size=size,
+            resizable=True,
+            finalize=True,
+            alpha_channel=0.0,
+        )
 
     def open_external_preview(self):
         key = self._config.last_preview_key
