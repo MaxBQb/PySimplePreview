@@ -44,4 +44,5 @@ class Application:
                 self._module_loader.setup()
                 self._runner.refresh_layout()
                 while True:
+                    self._project_observer.dispatch_events()
                     self._runner.step()

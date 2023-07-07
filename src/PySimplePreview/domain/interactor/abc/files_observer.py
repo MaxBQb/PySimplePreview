@@ -20,3 +20,7 @@ class ProjectObserver(metaclass=ABCMeta):
     @abstractmethod
     def track(self):
         pass
+
+    @abstractmethod
+    def dispatch_events(self):
+        pass

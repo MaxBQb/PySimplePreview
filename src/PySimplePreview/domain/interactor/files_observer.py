@@ -2,7 +2,7 @@ import contextlib
 import logging
 import time
 from pathlib import Path
-from typing import Callable
+from queue import Queue
 
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
@@ -14,11 +14,11 @@ from PySimplePreview.domain.model.event import InvokableEvent
 
 
 class FilesObserver(FileSystemEventHandler):
-    def __init__(self, callback: Callable[[str], ...], root_path: str):
+    def __init__(self, root_path: str):
         self.last_event = 0
         self.events = {}
         self.cooldown = 50
-        self.callback = callback
+        self.queue = Queue()
         self.observer = Observer()
         self.observer.schedule(self, root_path, recursive=True)
 
@@ -41,7 +41,7 @@ class FilesObserver(FileSystemEventHandler):
                 return
         self.events[event.src_path] = timestamp
         super().on_modified(event)
-        self.callback(event.src_path)
+        self.queue.put_nowait(event.src_path)
 
 
 class ProjectObserverImpl(ProjectObserver):
@@ -51,10 +51,12 @@ class ProjectObserverImpl(ProjectObserver):
         self._observer: FilesObserver = None
         self._config_storage = config
         self._last_project: Path = None
+        self._is_package = False
         self._config_storage.on_update += self._on_update
 
     def _callback(self, path: str):
-        self.on_project_update.invoke(Path(path), False)
+        if self._is_package or self._last_project.samefile(path):
+            self.on_project_update.invoke(Path(path), False)
 
     def close(self):
         if self._observer:
@@ -69,9 +71,9 @@ class ProjectObserverImpl(ProjectObserver):
         if not self._last_project:
             return
         is_package = is_package_project(self._last_project)
+        self._is_package = is_package
         if not self._observer:
             self._observer = FilesObserver(
-                self._callback if is_package else self._single_module_track,
                 str(self._last_project.parent if self._last_project.is_file() else self._last_project)
             )
         self._observer.start()
@@ -85,6 +87,13 @@ class ProjectObserverImpl(ProjectObserver):
             self.close()
             self.on_project_update.invoke(config.current_project, True)
             self.start()
+
+    def dispatch_events(self):
+        if not self._observer:
+            return
+        while not self._observer.queue.empty():
+            data = self._observer.queue.get_nowait()
+            self._callback(data)
 
     @contextlib.contextmanager
     def track(self):
