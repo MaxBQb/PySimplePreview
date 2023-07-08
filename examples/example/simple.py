@@ -1,5 +1,3 @@
-import time
-
 import PySimpleGUI as sg
 
 from condition_import import preview, group_previews, method_preview, params
@@ -63,10 +61,10 @@ def main():
     window = sg.Window(
         "Example",
         get_layout(),
-        size=(280, 280),
-        finalize=True)
-    window.read(timeout=3)
-    time.sleep(3)
+        size=(280, 280))
+    for i in range(80):
+        window.read(timeout=100)
+    window.close()
 
 
 if __name__ == '__main__':

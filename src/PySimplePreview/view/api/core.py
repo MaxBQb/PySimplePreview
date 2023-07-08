@@ -32,7 +32,12 @@ def _preview(
         _group_name = group_name or _group_name
         module_path = Path(inspect.getfile(f))
         qualname = get_qualified_name(f, module_path, name)
-        Application.current.container.resolve(PreviewsStorage).previews.add_preview(
+        app = Application.current
+        if not app:
+            return f  # Do nothing, when user app started
+        # Go next only when own app is running
+        previews = app.container.resolve(PreviewsStorage).previews
+        previews.add_preview(
             name=qualname,
             layout_provider=lambda: call_with_params(f, call_params),
             module_path=module_path,
