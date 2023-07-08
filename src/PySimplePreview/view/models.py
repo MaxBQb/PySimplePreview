@@ -1,5 +1,7 @@
-
+import logging
+import typing
 from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
 from typing import Iterable, Any, Sequence
 
@@ -32,6 +34,7 @@ class ConfigViewDTO:
     is_package: bool = None
     reload_all: bool = False
     remember_positions: bool = True
+    always_on_top: bool = True
     integrated_preview: bool = True
     integrated_preview_disabled: bool = False
     projects: tuple[str, ...] = tuple()
@@ -45,6 +48,7 @@ def map_config_to_view(config: Config):
         projects=tuple(str(x) for x in config.projects),
         current_project=str(config.current_project) if config.current_project else None,
         theme=config.theme or sg.CURRENT_LOOK_AND_FEEL,
+        always_on_top=config.always_on_top,
         reload_all=config.reload_all,
         remember_positions=config.remember_positions,
         integrated_preview=config.integrated_preview,
@@ -87,6 +91,27 @@ def map_log_config_to_view(config: LogConfig):
         write_to=config.write_to.name,
         file_path=config.file_path.absolute() if config.file_path else None,
     )
+
+
+def map_on_off(value: bool):
+    return "on" if value else "off"
+
+
+def map_menu_to_view(text: str, key: Enum):
+    return text + "::MENU_" + key.name
+
+
+def map_from_menu_view(event, namespace: typing.Type[Enum]):
+    try:
+        if not isinstance(event, str):
+            return event
+        if "::MENU_" not in event:
+            return event
+        name, key = event.split("::MENU_", 1)
+        return namespace[key]
+    except Exception as e:
+        logging.exception("Can't map event", exc_info=e)
+        return event
 
 
 def shorten_preview_names(keys: Iterable[str]):

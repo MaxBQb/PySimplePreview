@@ -75,7 +75,7 @@ class ExternalPreviewWindowController(BaseController):
         return sg.Window(
             f"External Python Simple Preview for {self.key}",
             layout,
-            keep_on_top=True,
+            keep_on_top=self._config.always_on_top,
             location=location,
             size=size,
             resizable=True,

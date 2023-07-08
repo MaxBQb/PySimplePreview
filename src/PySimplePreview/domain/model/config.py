@@ -15,6 +15,7 @@ class Config:
     projects: tuple[Path, ...] = tuple()
     reload_all: bool = False
     remember_positions: bool = True
+    always_on_top: bool = True
     integrated_preview: bool = True
     theme: str = None
     logging: LogConfig = field(default_factory=LogConfig)

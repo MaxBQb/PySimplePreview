@@ -15,3 +15,4 @@ class SettingsEvents(Enum):
     LOGGING_DESTINATION = auto()
     LOG_FILE_PATH = auto()
     LOG = auto()
+    ALWAYS_ON_TOP = auto()

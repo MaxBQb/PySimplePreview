@@ -18,7 +18,8 @@ from PySimplePreview.view.controller.external_preview_factory import ExternalPre
 from PySimplePreview.view.layouts import get_settings_layout, get_preview_layout_frame, get_log_layout, \
     get_exception_layout
 from PySimplePreview.view.log import LoggingConfigurator
-from PySimplePreview.view.models import map_config_to_view, shorten_preview_names, ListItem, map_log_config_to_view
+from PySimplePreview.view.models import map_config_to_view, shorten_preview_names, ListItem, map_log_config_to_view, \
+    map_from_menu_view
 
 
 class PreviewSettingsWindowController(BaseController):
@@ -124,7 +125,7 @@ class PreviewSettingsWindowController(BaseController):
         return sg.Window(
             "Python Simple Preview",
             layout,
-            keep_on_top=True,
+            keep_on_top=self._config.always_on_top,
             location=location,
             size=size,
             resizable=True,
@@ -161,6 +162,7 @@ class PreviewSettingsWindowController(BaseController):
 
     def _handle_event(self, event, values):
         value = values.get(event) if values else None
+        event = map_from_menu_view(event, SettingsEvents)
         if event == SettingsEvents.THEME:
             self._config.theme = value
             self._configs_storage.save()
@@ -174,7 +176,7 @@ class PreviewSettingsWindowController(BaseController):
             self._config.reload_all = value
             self._configs_storage.save()
         elif event == SettingsEvents.REMEMBER_POSITIONS:
-            self._config.remember_positions = value
+            self._config.remember_positions ^= True
             if value:
                 self._configs_storage.dump_positions()
             self._configs_storage.save()
@@ -200,6 +202,9 @@ class PreviewSettingsWindowController(BaseController):
             self._configs_storage.save()
         elif event == SettingsEvents.LOG_FILE_PATH:
             self._config.logging.file_path = Path(value)
+            self._configs_storage.save()
+        elif event == SettingsEvents.ALWAYS_ON_TOP:
+            self._config.always_on_top ^= True
             self._configs_storage.save()
         elif event is None:
             sys.exit()

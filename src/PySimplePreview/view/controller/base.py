@@ -92,6 +92,10 @@ class BaseController(metaclass=ABCMeta):
             )
         elif event is None:
             self._window_holder.close()
+        elif event == sg.TIMEOUT_EVENT:
+            pass
+        else:
+            logging.warning(f"Unhandled event '{event}', value = `{(values or {}).get(event, None)}`")
 
     def refresh_layout(self):
         self.layout = self.layout or get_nocontent_layout

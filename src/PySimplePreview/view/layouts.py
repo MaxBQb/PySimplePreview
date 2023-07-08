@@ -8,7 +8,7 @@ from PySimplePreview.domain.interactor.previews_manager import PreviewsManager
 from PySimplePreview.domain.model.log_config import LogConfig
 from PySimplePreview.domain.model.preview import LAYOUT_PROVIDER, LAYOUT
 from PySimplePreview.view.contracts import SettingsEvents
-from PySimplePreview.view.models import ConfigViewDTO, ListItem, LogConfigViewDTO
+from PySimplePreview.view.models import ConfigViewDTO, ListItem, LogConfigViewDTO, map_menu_to_view, map_on_off
 
 
 def get_settings_layout(
@@ -16,75 +16,95 @@ def get_settings_layout(
         previews: tuple[ListItem, ...],
         groups: tuple[str, ...],
 ):
-    return [[sg.Column(justification='center', p=(8, 2), s=(445, 116), layout=[[
-        sg.Text("Theme:", s=6, p=0),
-        sg.DropDown(
-            sg.theme_list(),
-            key=SettingsEvents.THEME,
-            enable_events=True,
-            default_value=config.theme,
-        ),
-        sg.Checkbox(
-            "Reload all",
-            config.reload_all,
-            key=SettingsEvents.RELOAD_ALL,
-            tooltip="On any change whole program will be reloaded (not recommended)"
-                    "\nUse this only if your layout depends on other module that is"
-                    "\nchanged at preview time",
-            disabled=not config.is_package,
-            enable_events=True,
-        ),
-        sg.Button(
-            "Internal preview" if config.integrated_preview else "External preview",
-            key=SettingsEvents.INTEGRATED_PREVIEW,
-            disabled=config.integrated_preview_disabled,
-            tooltip="Show preview below (Internal) or in separate window (External)",
-            s=12,
+    return [[
+        sg.MenubarCustom(
+            [
+                ["&Window", [
+                    map_menu_to_view(
+                        f"Always on &top ({map_on_off(config.always_on_top).upper()})",
+                        SettingsEvents.ALWAYS_ON_TOP,
+                    ),
+                    map_menu_to_view(
+                        f"&Persist size and location ({map_on_off(config.remember_positions).upper()})",
+                        SettingsEvents.REMEMBER_POSITIONS,
+                    ),
+                ]],
+            ],
+            text_color=sg.theme_button_color_text(),
+            bar_text_color=sg.theme_button_color_text(),
+            background_color=sg.theme_button_color_background(),
+            bar_background_color=sg.theme_button_color_background(),
         ),
     ], [
-        sg.Text("Project:", s=6, p=0),
-        sg.DropDown(
-            config.projects,
-            size=43,
-            key=SettingsEvents.PROJECT, enable_events=True,
-            default_value=config.current_project,
-        ),
-        sg.Button("New", key=SettingsEvents.NEW_PROJECT, s=4, p=((11, 0), 0)),
-    ], [
-        sg.Text("Group:", s=6, p=(0, 6)),
-        sg.DropDown(
-            groups,
-            size=25,
-            key=SettingsEvents.GROUP, enable_events=True,
-            disabled=len(groups) <= 1,
-            default_value=config.last_preview_group_key,
-        ),
-        sg.Checkbox(
-            "Remember size and pos", config.remember_positions, key=SettingsEvents.REMEMBER_POSITIONS,
-            tooltip="On any move or resize of an app's window, it's position and size "
-                    "\nwill be persisted in config. Already stored values will be used "
-                    "\nas default one, even with this setting turned off!",
-            enable_events=True,
-            p=((10, 0), 0),
-        ),
-    ], [
-        sg.Text("Preview:", s=6, p=0),
-        sg.DropDown(
-            previews,
-            size=25,
-            key=SettingsEvents.PREVIEW,
-            enable_events=True,
-            default_value=config.preview_key or (previews[0] if previews else ""),
-        ),
-        sg.Button("Log", font=("Consolas", 8), p=(3, 3), key=SettingsEvents.TOGGLE_LOG),
-        sg.Text(
-            "From: " + ("Package" if config.is_package else "Single module"),
-            visible=config.is_package is not None,
-            justification='right',
-            s=15, p=((21, 0), 0),
-        ),
-    ],
-    ])]]
+        sg.Column(justification='center', p=(8, 2), s=(445, 116), layout=[[
+            sg.Text("Theme:", s=6, p=0),
+            sg.DropDown(
+                sg.theme_list(),
+                key=SettingsEvents.THEME,
+                enable_events=True,
+                default_value=config.theme,
+            ),
+            sg.Checkbox(
+                "Reload all",
+                config.reload_all,
+                key=SettingsEvents.RELOAD_ALL,
+                tooltip="On any change whole program will be reloaded (not recommended)"
+                        "\nUse this only if your layout depends on other module that is"
+                        "\nchanged at preview time",
+                disabled=not config.is_package,
+                enable_events=True,
+            ),
+            sg.Button(
+                "Internal preview" if config.integrated_preview else "External preview",
+                key=SettingsEvents.INTEGRATED_PREVIEW,
+                disabled=config.integrated_preview_disabled,
+                tooltip="Show preview below (Internal) or in separate window (External)",
+                s=12,
+            ),
+        ], [
+            sg.Text("Project:", s=6, p=0),
+            sg.DropDown(
+                config.projects,
+                size=43,
+                key=SettingsEvents.PROJECT, enable_events=True,
+                default_value=config.current_project,
+            ),
+            sg.Button("New", key=SettingsEvents.NEW_PROJECT, s=4, p=((11, 0), 0)),
+        ], [
+            sg.Text("Group:", s=6, p=(0, 6)),
+            sg.DropDown(
+                groups,
+                size=25,
+                key=SettingsEvents.GROUP, enable_events=True,
+                disabled=len(groups) <= 1,
+                default_value=config.last_preview_group_key,
+            ),
+            sg.Checkbox(
+                "Remember size and pos", config.remember_positions, key=SettingsEvents.REMEMBER_POSITIONS,
+                tooltip="On any move or resize of an app's window, it's position and size "
+                        "\nwill be persisted in config. Already stored values will be used "
+                        "\nas default one, even with this setting turned off!",
+                enable_events=True,
+                p=((10, 0), 0),
+            ),
+        ], [
+            sg.Text("Preview:", s=6, p=0),
+            sg.DropDown(
+                previews,
+                size=25,
+                key=SettingsEvents.PREVIEW,
+                enable_events=True,
+                default_value=config.preview_key or (previews[0] if previews else ""),
+            ),
+            sg.Button("Log", font=("Consolas", 8), p=(3, 3), key=SettingsEvents.TOGGLE_LOG),
+            sg.Text(
+                "From: " + ("Package" if config.is_package else "Single module"),
+                visible=config.is_package is not None,
+                justification='right',
+                s=15, p=((21, 0), 0),
+            ),
+        ],
+        ])]]
 
 
 def get_preview_layout_frame(content: LAYOUT_PROVIDER, name=""):
@@ -111,9 +131,9 @@ def get_nocontent_layout():
 
 
 def get_unpacked_layout(
-    content: LAYOUT_PROVIDER,
-    no_content: LAYOUT_PROVIDER = get_nocontent_layout,
-    error_content: typing.Callable[[Exception], LAYOUT] = get_exception_layout,
+        content: LAYOUT_PROVIDER,
+        no_content: LAYOUT_PROVIDER = get_nocontent_layout,
+        error_content: typing.Callable[[Exception], LAYOUT] = get_exception_layout,
 ):
     try:
         result = content()
