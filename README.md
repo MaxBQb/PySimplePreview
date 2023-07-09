@@ -1,8 +1,17 @@
-# Quick Overview
+# PySimplePreview
+[![PyPI version shields.io](https://img.shields.io/pypi/v/PySimplePreview.svg)](https://pypi.org/project/PySimplePreview/)
+[![GitHub license](https://img.shields.io/github/license/MaxBQb/WinMagnification.svg)](https://github.com/MaxBQb/PySimplePreview/blob/master/LICENSE.md)
+---
+
 This is python tool which provide realtime/live/hot preview of [PySimpleGUI](https://pypi.org/project/PySimpleGUI/) layouts.
 This tool assumes that developer writes layouts as separate method/function(-s).
 > Note: Layout is simply list of lists of PySimpleGUI elements.
 ## Usage
+### Installation
+Simply use pip:
+```sh
+pip install PySimplePreview
+```
 ### Prepare your project
 This tool is development-only dependency, so before you start using it, lets help python resolve it as optional dependency:
 1. First, if you store dependencies in `requirements.txt`, add separate file e.g. `requirements-dev.txt`
