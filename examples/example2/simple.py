@@ -1,9 +1,9 @@
 import PySimpleGUI as sg
 
-from condition_import import preview
+from condition_import import preview, params
 
 
-@preview(name="from preview defaults!!")
+@preview(call_params=params(name="from preview defaults!!"))
 def get_layout(name="world!!"):
     return [
         [sg.Text(f"Hello, {name}")],

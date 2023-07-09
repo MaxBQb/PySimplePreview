@@ -13,6 +13,8 @@ except ImportError:  # Used when no dependency found
 
         return dummy_wrapper
 
+    def params(*args, **kwargs):
+        return args, kwargs
 
     group_previews = preview
     method_previews = preview
